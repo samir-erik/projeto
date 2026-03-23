@@ -11,12 +11,7 @@ def buscar_e_salvar():
     res = requests.get(url)
     data = res.json()
 
-    conn = psycopg2.connect(
-        host="localhost",
-        database="noticias_db",
-        user="postgres",
-        password="1234"
-    )
+    conn = psycopg2.connect("postgresql://postgres:C66236DBCc.@db.ruwagoepsujdemktrqno.supabase.co:5432/postgres")
 
     cursor = conn.cursor()
 
@@ -25,6 +20,7 @@ def buscar_e_salvar():
             cursor.execute("""
                 INSERT INTO noticias (titulo, descricao, url, imagem, fonte, data_publicacao)
                 VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (url) DO NOTHING
             """, (
                 noticia["title"],
                 noticia["description"],

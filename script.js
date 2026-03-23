@@ -17,21 +17,6 @@ async function filtrar(categoria) {
     mostrar(dados);
 }
 
-function buscar() {
-    const termo = document.getElementById("campoBusca").value.toLowerCase();
-    const cards = document.querySelectorAll(".card");
-
-    cards.forEach(card => {
-        const titulo = card.querySelector("h3").innerText.toLowerCase();
-        // Se o título contém o que foi digitado, mostra o card, senão esconde
-        if (titulo.includes(termo)) {
-            card.style.display = "block";
-        } else {
-            card.style.display = "none";
-        }
-    });
-}
-
 function mostrar(lista) {
     const div = document.getElementById("noticias");
     div.innerHTML = "";
