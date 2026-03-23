@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="PT-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Notícias</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    <h1>📰 Portal de Notícias</h1>
+</header>
+
+<div class="busca">
+    <input 
+        type="text" 
+        id="campoBusca" 
+        placeholder="🔎 Buscar notícias..."
+        oninput="buscar()"
+    >
+</div>
+
+<div class="categorias">
+    <button onclick="carregarNoticias()">Todas</button>
+    <button onclick="filtrar('Tecnologia')">Tecnologia</button>
+    <button onclick="filtrar('Esportes')">Esportes</button>
+    <button onclick="filtrar('Economia')">Economia</button>
+    <button onclick="filtrar('Geral')">Geral</button>
+</div>
+
+<div class="container" id="noticias"></div>
+
+<script src="script.js"></script>
+    
+</body>
+</html>
