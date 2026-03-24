@@ -1,20 +1,29 @@
 console.log("JS CARREGOU");
-let todasNoticias = [];
+// URL da sua API no Render
+const API_URL = "https://api-noticias-s2f9.onrender.com";
 
 async function carregarNoticias() {
-    const res = await fetch("http://127.0.0.1:5000/noticias");
+    const res = await fetch(`${API_URL}/noticias`);
     const dados = await res.json();
-
-    todasNoticias = dados; // 🔥 salva tudo
     mostrar(dados);
 }
 
 async function filtrar(categoria) {
-    const res = await fetch(`http://127.0.0.1:5000/categoria/${categoria}`);
-    const dados = await res.json();
+    const div = document.getElementById("noticias");
+    div.innerHTML = "<p>Carregando notícias de " + categoria + "...</p>";
 
-    todasNoticias = dados; // 🔥 importante
-    mostrar(dados);
+    try {
+        const res = await fetch(`${API_URL}/categoria/${categoria}`);
+        const dados = await res.json();
+        
+        if (dados.length === 0) {
+            div.innerHTML = `<p>Nenhuma notícia encontrada para a categoria ${categoria}.</p>`;
+        } else {
+            mostrar(dados);
+        }
+    } catch (erro) {
+        div.innerHTML = "<p>Erro ao conectar com o servidor.</p>";
+    }
 }
 
 function mostrar(lista) {
@@ -24,10 +33,10 @@ function mostrar(lista) {
     lista.forEach(noticia => {
         div.innerHTML += `
             <div class="card">
-                <img src="${noticia.imagem}" />
+                <img src="${noticia.imagem || 'https://via.placeholder.com/300x180?text=Sem+Imagem'}" />
                 <div class="card-content">
                     <h3>${noticia.titulo}</h3>
-                    <p>${noticia.categoria}</p>
+                    <p><strong>Categoria:</strong> ${noticia.categoria || 'Geral'}</p>
                     <a href="${noticia.url}" target="_blank">Ler mais →</a>
                 </div>
             </div>
@@ -37,15 +46,11 @@ function mostrar(lista) {
 
 async function buscar() {
     const termo = document.getElementById("campoBusca").value;
-
-    // Só busca se o usuário digitar pelo menos 3 letras
     if (termo.length >= 3) {
-        const res = await fetch(`http://127.0.0.1:5000/buscar/${termo}`);
+        const res = await fetch(`${API_URL}/buscar/${termo}`);
         const dados = await res.json();
         mostrar(dados);
-    } 
-    // Se o usuário apagar tudo, recarrega todas as notícias
-    else if (termo.length === 0) {
+    } else if (termo.length === 0) {
         carregarNoticias();
     }
 }
