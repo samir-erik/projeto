@@ -11,7 +11,7 @@ def buscar_e_salvar():
     res = requests.get(url)
     data = res.json()
 
-    conn = psycopg2.connect("postgresql://postgres:C66236DBCc.@db.ruwagoepsujdemktrqno.supabase.co:5432/postgres")
+    conn = psycopg2.connect("postgresql://postgres.ruwagoepsujdemktrqno:C66236DBCc.@aws-1-us-east-1.pooler.supabase.com:5432/postgres")
 
     cursor = conn.cursor()
 
