@@ -2,9 +2,6 @@ console.log("JS CARREGOU");
 // URL da sua API no Render
 const API_URL = "https://api-noticias-s2f9.onrender.com";
 
-// URL base da sua API no Render
-const API_URL = "https://api-noticias-s2f9.onrender.com";
-
 async function carregarNoticias() {
     const res = await fetch(`${API_URL}/noticias`);
     const dados = await res.json();
@@ -12,11 +9,21 @@ async function carregarNoticias() {
 }
 
 async function filtrar(categoria) {
-    const res = await fetch(`${API_URL}/categoria/${categoria}`);
-    const dados = await res.json();
+    const div = document.getElementById("noticias");
+    div.innerHTML = "<p>Carregando notícias de " + categoria + "...</p>";
 
-    todasNoticias = dados; // 🔥 importante
-    mostrar(dados);
+    try {
+        const res = await fetch(`${API_URL}/categoria/${categoria}`);
+        const dados = await res.json();
+        
+        if (dados.length === 0) {
+            div.innerHTML = `<p>Nenhuma notícia encontrada para a categoria ${categoria}.</p>`;
+        } else {
+            mostrar(dados);
+        }
+    } catch (erro) {
+        div.innerHTML = "<p>Erro ao conectar com o servidor.</p>";
+    }
 }
 
 function mostrar(lista) {
