@@ -2,6 +2,9 @@ console.log("JS CARREGOU");
 // URL da sua API no Render
 const API_URL = "https://api-noticias-s2f9.onrender.com";
 
+// URL base da sua API no Render
+const API_URL = "https://api-noticias-s2f9.onrender.com";
+
 async function carregarNoticias() {
     const res = await fetch(`${API_URL}/noticias`);
     const dados = await res.json();
@@ -9,8 +12,13 @@ async function carregarNoticias() {
 }
 
 async function filtrar(categoria) {
+<<<<<<< HEAD:script.js
     const div = document.getElementById("noticias");
     div.innerHTML = "<p>Carregando notícias de " + categoria + "...</p>";
+=======
+    const res = await fetch(`${API_URL}/categoria/${categoria}`);
+    const dados = await res.json();
+>>>>>>> 8ec4a5c5ac73790c38fe4e50beff6be05118330f:frontend/script.js
 
     try {
         const res = await fetch(`${API_URL}/categoria/${categoria}`);

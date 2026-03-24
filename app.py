@@ -6,7 +6,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Link do Supabase sem os colchetes!
-DB_URI = "postgresql://postgres:C66236DBCc.@db.ruwagoepsujdemktrqno.supabase.co:5432/postgres"
+DB_URI = "postgresql://postgres.ruwagoepsujdemktrqno:C66236DBCc.@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
 
 def conectar():
     return psycopg2.connect(DB_URI)
