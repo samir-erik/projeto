@@ -30,14 +30,18 @@ def noticias():
 def categoria_rota(categoria):
     conn = conectar()
     cursor = conn.cursor()
+    # Usamos ILIKE para o filtro ser mais flexível (ex: 'esportes' ou 'Esportes')
     cursor.execute("""
         SELECT titulo, descricao, url, imagem, categoria
         FROM noticias
-        WHERE categoria = %s
+        WHERE TRIM(categoria) ILIKE %s
         ORDER BY data_publicacao DESC
     """, (categoria,))
     dados = cursor.fetchall()
     conn.close()
+
+    lista = [{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados]
+    return jsonify(lista)
 
     lista = [{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados]
     return jsonify(lista)
