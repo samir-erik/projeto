@@ -12,21 +12,11 @@ async function carregarNoticias() {
 }
 
 async function filtrar(categoria) {
-    const div = document.getElementById("noticias");
-    div.innerHTML = "<p>Carregando notícias de " + categoria + "...</p>";
+    const res = await fetch(`${API_URL}/categoria/${categoria}`);
+    const dados = await res.json();
 
-    try {
-        const res = await fetch(`${API_URL}/categoria/${categoria}`);
-        const dados = await res.json();
-        
-        if (dados.length === 0) {
-            div.innerHTML = `<p>Nenhuma notícia encontrada para a categoria ${categoria}.</p>`;
-        } else {
-            mostrar(dados);
-        }
-    } catch (erro) {
-        div.innerHTML = "<p>Erro ao conectar com o servidor.</p>";
-    }
+    todasNoticias = dados; // 🔥 importante
+    mostrar(dados);
 }
 
 function mostrar(lista) {
