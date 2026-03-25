@@ -30,7 +30,7 @@ O sistema deverá:
 5.5 Hospedagem: Render
 6. Estrutura do Sistema
 O funcionamento do sistema ocorrerá da seguinte forma:
-1. 2. 3. 4. 5. 6. O usuário acessa o site através do navegador
+O  usuário acessa o site através do navegador
 O front-end envia requisições ao back-end
 O back-end realiza requisições à API GNews
 A API retorna os dados em formato JSON
