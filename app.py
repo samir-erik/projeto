@@ -2,6 +2,8 @@ from flask import Flask, jsonify
 import psycopg2
 from flask_cors import CORS
 import os
+import threading
+from bot_auto import buscar_e_salvar
 
 app = Flask(__name__)
 CORS(app)
@@ -63,6 +65,13 @@ def buscar(termo):
 
     lista = [{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados]
     return jsonify(lista)
+
+def rodar_bot_em_background():
+    # Chama a função de busca que já criamos
+    buscar_e_salvar()
+
+# Disparamos o bot em uma "thread" separada para não travar o site
+threading.Thread(target=rodar_bot_em_background, daemon=True).start()
 
 if __name__ == '__main__':
     # O Render fornece uma porta variável, por isso usamos os.environ.get
