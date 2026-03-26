@@ -44,8 +44,7 @@ def categoria_rota(categoria):
     lista = [{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados]
     return jsonify(lista)
 
-    lista = [{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados]
-    return jsonify(lista)
+ 
 
 @app.route("/buscar/<termo>")
 def buscar(termo):
