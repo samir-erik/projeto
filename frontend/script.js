@@ -1,6 +1,6 @@
 console.log("JS CARREGOU");
 // URL da sua API no Render
-const API_URL = "https://api-noticias-s2f9.onrender.com";
+const API_URL = "https://projeto-y7ry.onrender.com";
 
 async function carregarNoticias() {
     const res = await fetch(`${API_URL}/noticias`);
