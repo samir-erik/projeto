@@ -71,7 +71,7 @@ def rodar_bot_em_background():
     buscar_e_salvar()
 
 # Disparamos o bot em uma "thread" separada para não travar o site
-threading.Thread(target=rodar_bot_em_background, daemon=True).start()
+# threading.Thread(target=rodar_bot_em_background, daemon=True).start()
 
 if __name__ == '__main__':
     # O Render fornece uma porta variável, por isso usamos os.environ.get
