@@ -137,4 +137,66 @@ async function carregarDashboard() {
     `).join('');
 }
 
+async function mostrarAbaAnalise() {
+    const div = document.getElementById("conteudoPrincipal");
+    div.innerHTML = "<p>Carregando análises detalhadas...</p>";
+
+    try {
+        const res = await fetch(`${API_URL}/dashboard`);
+        const dados = await res.json();
+
+        // Limpa o contêiner e insere a estrutura da aba de análise
+        div.innerHTML = `
+            <div class="dashboard-aba">
+                <div class="metrics-row">
+                    <div class="card-metrica">
+                        <span>Total de Notícias</span>
+                        <strong>${dados.estatisticas_gerais.total}</strong>
+                    </div>
+                    <div class="card-metrica">
+                        <span>Engajamento Total</span>
+                        <strong>${dados.estatisticas_gerais.cliques_totais} cliques</strong>
+                    </div>
+                </div>
+
+                <div class="analise-detalhada">
+                    <div class="secao-stats">
+                        <h3>Distribuição por Categoria</h3>
+                        ${dados.por_categoria.map(cat => `
+                            <div class="progresso-container">
+                                <div class="progresso-texto">
+                                    <span>${cat.categoria}</span>
+                                    <span>${cat.percentual}%</span>
+                                </div>
+                                <div class="barra-fundo">
+                                    <div class="barra-preenchida" style="width: ${cat.percentual}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="secao-ranking">
+                        <h3>🏆 Top 5 Mais Lidas</h3>
+                        <table class="tabela-analise">
+                            <thead>
+                                <tr><th>Notícia</th><th>Acessos</th></tr>
+                            </thead>
+                            <tbody>
+                                ${dados.ranking_top_5.map(n => `
+                                    <tr>
+                                        <td>${n.titulo}</td>
+                                        <td>${n.acessos}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (erro) {
+        div.innerHTML = "<p>Erro ao carregar o dashboard.</p>";
+    }
+}
+
 carregarNoticias();
