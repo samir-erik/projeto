@@ -1,5 +1,3 @@
-console.log("JS CARREGOU");
-// URL da sua API no Render
 const API_URL = "https://projeto-y7ry.onrender.com";
 
 async function carregarNoticias() {
@@ -10,34 +8,27 @@ async function carregarNoticias() {
 
 async function filtrar(categoria) {
     const div = document.getElementById("noticias");
-    div.innerHTML = "<p>Carregando notícias de " + categoria + "...</p>";
-
-    try {
-        const res = await fetch(`${API_URL}/categoria/${categoria}`);
-        const dados = await res.json();
-        
-        if (dados.length === 0) {
-            div.innerHTML = `<p>Nenhuma notícia encontrada para a categoria ${categoria}.</p>`;
-        } else {
-            mostrar(dados);
-        }
-    } catch (erro) {
-        div.innerHTML = "<p>Erro ao conectar com o servidor.</p>";
-    }
+    div.innerHTML = `<p>Carregando ${categoria}...</p>`;
+    const res = await fetch(`${API_URL}/categoria/${categoria}`);
+    const dados = await res.json();
+    mostrar(dados);
 }
 
 function mostrar(lista) {
     const div = document.getElementById("noticias");
     div.innerHTML = "";
-
+    if (lista.length === 0) {
+        div.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
+        return;
+    }
     lista.forEach(noticia => {
         div.innerHTML += `
             <div class="card">
-                <img src="${noticia.imagem || 'https://via.placeholder.com/300x180?text=Sem+Imagem'}" />
+                <img src="${noticia.imagem || 'https://via.placeholder.com/300x180'}" />
                 <div class="card-content">
                     <h3>${noticia.titulo}</h3>
-                    <p><strong>Categoria:</strong> ${noticia.categoria || 'Geral'}</p>
-                    <a href="${noticia.url}" target="_blank">Ler mais →</a>
+                    <p><strong>${noticia.categoria}</strong></p>
+                    <a href="${noticia.url}" target="_blank" onclick="registrarAcesso('${noticia.url}')">Ler mais →</a>
                 </div>
             </div>
         `;
@@ -55,148 +46,28 @@ async function buscar() {
     }
 }
 
-// Função para registrar o clique na notícia
 async function registrarAcesso(url) {
-    const jaClicou = localStorage.getItem(`clique_${url}`);
-    if (!jaClicou) {
-        await fetch(`${API_URL}/contar_acesso/${encodeURIComponent(url)}`, { method: 'POST' });
-        localStorage.setItem(`clique_${url}`, 'true');
-    }
-}
-
-// Modifique sua função mostrar() para incluir o onclick no link
-function mostrar(lista) {
-    const div = document.getElementById("noticias");
-    div.innerHTML = "";
-    lista.forEach(noticia => {
-        div.innerHTML += `
-            <div class="card">
-                <img src="${noticia.imagem || 'https://via.placeholder.com/300x180'}" />
-                <div class="card-content">
-                    <h3>${noticia.titulo}</h3>
-                    <p><strong>Categoria:</strong> ${noticia.categoria || 'Geral'}</p>
-                    <a href="${noticia.url}" target="_blank" onclick="registrarAcesso('${noticia.url}')">Ler mais →</a>
-                </div>
-            </div>
-        `;
-    });
-}
-
-// Função para carregar o Dashboard
-async function carregarDashboard() {
-    const res = await fetch(`${API_URL}/dashboard`);
-    const dados = await res.json();
-    
-    const painel = document.getElementById("painelAnalise");
-    const conteudo = document.getElementById("statsConteudo");
-    painel.style.display = "block";
-
-    let html = "<h3>Notícias por Categoria:</h3><ul>";
-    dados.por_categoria.forEach(item => {
-        html += `<li>${item.categoria}: <strong>${item.quantidade}</strong></li>`;
-    });
-    html += "</ul>";
-
-    if(dados.mais_acessada) {
-        html += `<br><h3>🏆 Mais Acessada:</h3>
-                 <p>${dados.mais_acessada.titulo} (<strong>${dados.mais_acessada.acessos} cliques</strong>)</p>`;
-    }
-
-    conteudo.innerHTML = html;
-}
-
-async function carregarDashboard() {
-    const res = await fetch(`${API_URL}/dashboard`);
-    const dados = await res.json();
-    
-    document.getElementById("painelAnalise").style.display = "block";
-
-    // 1. Preencher Métricas Rápidas
-    const metrics = document.getElementById("metricsGrid");
-    metrics.innerHTML = `
-        <div class="metric-card"><h4>Total de Notícias</h4><p>${dados.estatisticas_gerais.total}</p></div>
-        <div class="metric-card"><h4>Cliques Totais</h4><p>${dados.estatisticas_gerais.cliques_totais}</p></div>
-    `;
-
-    // 2. Lista de Categorias com "Barras de Progresso" simples
-    const listaCat = document.getElementById("listaCategorias");
-    listaCat.innerHTML = dados.por_categoria.map(cat => `
-        <div class="cat-item">
-            <span>${cat.categoria} (${cat.quantidade})</span>
-            <div class="progress-bar"><div style="width: ${cat.percentual}%"></div></div>
-        </div>
-    `).join('');
-
-    // 3. Ranking de Notícias
-    const tbody = document.querySelector("#tabelaRanking tbody");
-    tbody.innerHTML = dados.ranking_top_5.map(n => `
-        <tr>
-            <td>${n.titulo}</td>
-            <td><strong>${n.acessos}</strong></td>
-        </tr>
-    `).join('');
+    await fetch(`${API_URL}/contar_acesso/${encodeURIComponent(url)}`, { method: 'POST' });
 }
 
 async function mostrarAbaAnalise() {
-    const div = document.getElementById("conteudoPrincipal");
-    div.innerHTML = "<p>Carregando análises detalhadas...</p>";
+    const div = document.getElementById("noticias"); // Usa o mesmo container para facilitar
+    div.innerHTML = "<p>Carregando análises...</p>";
+    
+    const res = await fetch(`${API_URL}/dashboard`);
+    const dados = await res.json();
 
-    try {
-        const res = await fetch(`${API_URL}/dashboard`);
-        const dados = await res.json();
-
-        // Limpa o contêiner e insere a estrutura da aba de análise
-        div.innerHTML = `
-            <div class="dashboard-aba">
-                <div class="metrics-row">
-                    <div class="card-metrica">
-                        <span>Total de Notícias</span>
-                        <strong>${dados.estatisticas_gerais.total}</strong>
-                    </div>
-                    <div class="card-metrica">
-                        <span>Engajamento Total</span>
-                        <strong>${dados.estatisticas_gerais.cliques_totais} cliques</strong>
-                    </div>
-                </div>
-
-                <div class="analise-detalhada">
-                    <div class="secao-stats">
-                        <h3>Distribuição por Categoria</h3>
-                        ${dados.por_categoria.map(cat => `
-                            <div class="progresso-container">
-                                <div class="progresso-texto">
-                                    <span>${cat.categoria}</span>
-                                    <span>${cat.percentual}%</span>
-                                </div>
-                                <div class="barra-fundo">
-                                    <div class="barra-preenchida" style="width: ${cat.percentual}%"></div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <div class="secao-ranking">
-                        <h3>🏆 Top 5 Mais Lidas</h3>
-                        <table class="tabela-analise">
-                            <thead>
-                                <tr><th>Notícia</th><th>Acessos</th></tr>
-                            </thead>
-                            <tbody>
-                                ${dados.ranking_top_5.map(n => `
-                                    <tr>
-                                        <td>${n.titulo}</td>
-                                        <td>${n.acessos}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        `;
-    } catch (erro) {
-        div.innerHTML = "<p>Erro ao carregar o dashboard.</p>";
-    }
+    div.innerHTML = `
+        <div class="dashboard-aba" style="grid-column: 1/-1; background: white; padding: 20px; border-radius: 10px;">
+            <h2>📊 Dashboard de Notícias</h2>
+            <p>Total: ${dados.estatisticas_gerais.total} | Cliques: ${dados.estatisticas_gerais.cliques_totais}</p>
+            <hr>
+            <h3>🏆 Top 5 Mais Lidas</h3>
+            <ul>
+                ${dados.ranking_top_5.map(n => `<li>${n.titulo} (<strong>${n.acessos} cliques</strong>)</li>`).join('')}
+            </ul>
+        </div>
+    `;
 }
 
 carregarNoticias();

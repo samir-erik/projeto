@@ -1,70 +1,27 @@
 <!DOCTYPE html>
-<html lang="PT-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal de Notícias</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-<header>
-    <h1>📰 Portal de Notícias</h1>
-</header>
-
-<div class="busca">
-    <input 
-        type="text" 
-        id="campoBusca" 
-        placeholder="🔎 Buscar notícias..."
-        oninput="buscar()"
-    >
-</div>
-
-<div class="categorias">
-    <button onclick="carregarNoticias()">Todas</button>
-    <button onclick="filtrar('Tecnologia')">Tecnologia</button>
-    <button onclick="filtrar('Esportes')">Esportes</button>
-    <button onclick="filtrar('Economia')">Economia</button>
-    <button onclick="filtrar('Geral')">Geral</button>
-    <button onclick="mostrarAbaAnalise()" style="background: #28a745; color: white;">📊 Análise</button>
-</div>
-
-<div class="container" id="conteudoPrincipal"></div>
-
-<div class="analise-btn">
-    <button onclick="carregarDashboard()">📊 Ver Análise de Dados</button>
-</div>
-
-<div id="painelAnalise" class="dashboard-container" style="display:none;">
-    <div class="dashboard-header">
-        <h2>📊 Analytics do Portal</h2>
-        <button class="btn-fechar" onclick="document.getElementById('painelAnalise').style.display='none'">✖</button>
+    <header><h1>📰 Portal de Notícias</h1></header>
+    
+    <div class="busca">
+        <input type="text" id="campoBusca" placeholder="🔎 Buscar notícias..." oninput="buscar()">
     </div>
-    
-    <div class="metrics-grid" id="metricsGrid"></div>
-    
-    <div class="dashboard-content">
-        <div class="chart-section">
-            <h3>Distribuição por Categoria</h3>
-            <div id="listaCategorias"></div>
-        </div>
-        <div class="ranking-section">
-            <h3>🏆 Top 5 Notícias (Engajamento)</h3>
-            <table id="tabelaRanking">
-                <thead>
-                    <tr><th>Título</th><th>Cliques</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
+
+    <div class="categorias">
+        <button onclick="carregarNoticias()">Todas</button>
+        <button onclick="filtrar('Tecnologia')">Tecnologia</button>
+        <button onclick="filtrar('Esportes')">Esportes</button>
+        <button onclick="filtrar('Economia')">Economia</button>
+        <button onclick="mostrarAbaAnalise()" style="background: #28a745; color: white;">📊 Dashboard</button>
     </div>
-</div>
 
-<div class="container" id="noticias"></div>
+    <div class="container" id="noticias"></div>
 
-<script src="script.js"></script>
-    
+    <script src="script.js"></script>
 </body>
 </html>
