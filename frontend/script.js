@@ -57,7 +57,11 @@ async function buscar() {
 
 // Função para registrar o clique na notícia
 async function registrarAcesso(url) {
-    await fetch(`${API_URL}/contar_acesso/${encodeURIComponent(url)}`, { method: 'POST' });
+    const jaClicou = localStorage.getItem(`clique_${url}`);
+    if (!jaClicou) {
+        await fetch(`${API_URL}/contar_acesso/${encodeURIComponent(url)}`, { method: 'POST' });
+        localStorage.setItem(`clique_${url}`, 'true');
+    }
 }
 
 // Modifique sua função mostrar() para incluir o onclick no link
