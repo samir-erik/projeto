@@ -60,18 +60,30 @@ def dashboard():
     conn = conectar()
     cursor = conn.cursor()
     
-    # Quantidade por categoria
-    cursor.execute("SELECT categoria, COUNT(*) FROM noticias GROUP BY categoria")
-    por_categoria = [{"categoria": d[0], "quantidade": d[1]} for d in cursor.fetchall()]
+    # Total de notícias e cliques para cálculos de %
+    cursor.execute("SELECT COUNT(*), SUM(acessos) FROM noticias")
+    total_noticias, total_acessos = cursor.fetchone()
+    total_acessos = total_acessos or 0 # Evita erro se for zero
     
-    # Notícia mais acessada
-    cursor.execute("SELECT titulo, acessos FROM noticias ORDER BY acessos DESC LIMIT 1")
-    mais_acessada = cursor.fetchone()
+    # Quantidade e Porcentagem por categoria
+    cursor.execute("SELECT categoria, COUNT(*) FROM noticias GROUP BY categoria")
+    por_categoria = [
+        {
+            "categoria": d[0], 
+            "quantidade": d[1],
+            "percentual": round((d[1] / total_noticias) * 100, 1) if total_noticias > 0 else 0
+        } for d in cursor.fetchall()
+    ]
+    
+    # Top 5 Notícias mais acessadas
+    cursor.execute("SELECT titulo, acessos, categoria FROM noticias WHERE acessos > 0 ORDER BY acessos DESC LIMIT 5")
+    ranking = [{"titulo": d[0], "acessos": d[1], "categoria": d[2]} for d in cursor.fetchall()]
     
     conn.close()
     return jsonify({
+        "estatisticas_gerais": {"total": total_noticias, "cliques_totais": total_acessos},
         "por_categoria": por_categoria,
-        "mais_acessada": {"titulo": mais_acessada[0], "acessos": mais_acessada[1]} if mais_acessada else None
+        "ranking_top_5": ranking
     })
  
 

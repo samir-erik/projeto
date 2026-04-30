@@ -34,10 +34,29 @@
     <button onclick="carregarDashboard()">📊 Ver Análise de Dados</button>
 </div>
 
-<div id="painelAnalise" style="display:none; padding: 20px; background: white; margin: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-    <h2>Estatísticas do Portal</h2>
-    <div id="statsConteudo"></div>
-    <button onclick="document.getElementById('painelAnalise').style.display='none'">Fechar</button>
+<div id="painelAnalise" class="dashboard-container" style="display:none;">
+    <div class="dashboard-header">
+        <h2>📊 Analytics do Portal</h2>
+        <button class="btn-fechar" onclick="document.getElementById('painelAnalise').style.display='none'">✖</button>
+    </div>
+    
+    <div class="metrics-grid" id="metricsGrid"></div>
+    
+    <div class="dashboard-content">
+        <div class="chart-section">
+            <h3>Distribuição por Categoria</h3>
+            <div id="listaCategorias"></div>
+        </div>
+        <div class="ranking-section">
+            <h3>🏆 Top 5 Notícias (Engajamento)</h3>
+            <table id="tabelaRanking">
+                <thead>
+                    <tr><th>Título</th><th>Cliques</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <div class="container" id="noticias"></div>

@@ -105,4 +105,36 @@ async function carregarDashboard() {
     conteudo.innerHTML = html;
 }
 
+async function carregarDashboard() {
+    const res = await fetch(`${API_URL}/dashboard`);
+    const dados = await res.json();
+    
+    document.getElementById("painelAnalise").style.display = "block";
+
+    // 1. Preencher Métricas Rápidas
+    const metrics = document.getElementById("metricsGrid");
+    metrics.innerHTML = `
+        <div class="metric-card"><h4>Total de Notícias</h4><p>${dados.estatisticas_gerais.total}</p></div>
+        <div class="metric-card"><h4>Cliques Totais</h4><p>${dados.estatisticas_gerais.cliques_totais}</p></div>
+    `;
+
+    // 2. Lista de Categorias com "Barras de Progresso" simples
+    const listaCat = document.getElementById("listaCategorias");
+    listaCat.innerHTML = dados.por_categoria.map(cat => `
+        <div class="cat-item">
+            <span>${cat.categoria} (${cat.quantidade})</span>
+            <div class="progress-bar"><div style="width: ${cat.percentual}%"></div></div>
+        </div>
+    `).join('');
+
+    // 3. Ranking de Notícias
+    const tbody = document.querySelector("#tabelaRanking tbody");
+    tbody.innerHTML = dados.ranking_top_5.map(n => `
+        <tr>
+            <td>${n.titulo}</td>
+            <td><strong>${n.acessos}</strong></td>
+        </tr>
+    `).join('');
+}
+
 carregarNoticias();
