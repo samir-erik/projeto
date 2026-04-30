@@ -46,6 +46,33 @@ def categoria_rota(categoria):
     lista = [{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados]
     return jsonify(lista)
 
+@app.route("/contar_acesso/<path:url>", methods=["POST"])
+def contar_acesso(url):
+    conn = conectar()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE noticias SET acessos = acessos + 1 WHERE url = %s", (url,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "sucesso"})
+
+@app.route("/dashboard")
+def dashboard():
+    conn = conectar()
+    cursor = conn.cursor()
+    
+    # Quantidade por categoria
+    cursor.execute("SELECT categoria, COUNT(*) FROM noticias GROUP BY categoria")
+    por_categoria = [{"categoria": d[0], "quantidade": d[1]} for d in cursor.fetchall()]
+    
+    # Notícia mais acessada
+    cursor.execute("SELECT titulo, acessos FROM noticias ORDER BY acessos DESC LIMIT 1")
+    mais_acessada = cursor.fetchone()
+    
+    conn.close()
+    return jsonify({
+        "por_categoria": por_categoria,
+        "mais_acessada": {"titulo": mais_acessada[0], "acessos": mais_acessada[1]} if mais_acessada else None
+    })
  
 
 @app.route("/buscar/<termo>")

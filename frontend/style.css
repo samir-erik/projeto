@@ -116,3 +116,14 @@ button:hover {
     border: 1px solid #ccc;
     outline: none;
 }
+
+.analise-btn {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.analise-btn button {
+    background: #28a745;
+    color: white;
+}

@@ -30,6 +30,16 @@
     <button onclick="filtrar('Geral')">Geral</button>
 </div> 
 
+<div class="analise-btn">
+    <button onclick="carregarDashboard()">📊 Ver Análise de Dados</button>
+</div>
+
+<div id="painelAnalise" style="display:none; padding: 20px; background: white; margin: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+    <h2>Estatísticas do Portal</h2>
+    <div id="statsConteudo"></div>
+    <button onclick="document.getElementById('painelAnalise').style.display='none'">Fechar</button>
+</div>
+
 <div class="container" id="noticias"></div>
 
 <script src="script.js"></script>
