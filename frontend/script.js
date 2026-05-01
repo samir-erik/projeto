@@ -1,29 +1,81 @@
 const API_URL = "https://projeto-y7ry.onrender.com";
 
+// 🚀 1. SISTEMA DE CACHE: Guarda os dados para evitar requisições repetidas
+const cacheNoticias = {};
+
+// 🚀 2. CONTROLE DE ROLAGEM INFINITA
+let noticiasExibidas = []; // Guarda a lista completa da categoria atual
+let itensPorPagina = 9;    // Quantas notícias aparecem por vez
+let paginaAtual = 1;
+
 async function carregarNoticias() {
-    const res = await fetch(`${API_URL}/noticias`);
-    const dados = await res.json();
-    mostrar(dados);
+    // Se já temos as notícias no cache, usa elas (resposta instantânea)
+    if (cacheNoticias['todas']) {
+        prepararExibicao(cacheNoticias['todas']);
+        return;
+    }
+
+    const div = document.getElementById("noticias");
+    div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Carregando as últimas notícias...</p>";
+
+    try {
+        const res = await fetch(`${API_URL}/noticias`);
+        const dados = await res.json();
+        cacheNoticias['todas'] = dados; // Salva no cache
+        prepararExibicao(dados);
+    } catch (e) {
+        div.innerHTML = "<p>Erro ao carregar notícias. Tente novamente.</p>";
+    }
 }
 
 async function filtrar(categoria) {
-    const div = document.getElementById("noticias");
-    div.innerHTML = `<p>Carregando ${categoria}...</p>`;
-    const res = await fetch(`${API_URL}/categoria/${categoria}`);
-    const dados = await res.json();
-    mostrar(dados);
-}
-
-function mostrar(lista) {
-    const div = document.getElementById("noticias");
-    div.innerHTML = "";
-    if (lista.length === 0) {
-        div.innerHTML = "<p>Nenhuma notícia encontrada.</p>";
+    // Se a categoria já está no cache, carrega em 0 segundos
+    if (cacheNoticias[categoria]) {
+        prepararExibicao(cacheNoticias[categoria]);
         return;
     }
-    lista.forEach(noticia => {
+
+    const div = document.getElementById("noticias");
+    div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Buscando notícias de ${categoria}...</p>`;
+
+    try {
+        const res = await fetch(`${API_URL}/categoria/${categoria}`);
+        const dados = await res.json();
+        cacheNoticias[categoria] = dados; // Salva no cache
+        prepararExibicao(dados);
+    } catch (e) {
+        div.innerHTML = `<p>Erro ao carregar ${categoria}.</p>`;
+    }
+}
+
+// 🚀 3. PREPARA A EXIBIÇÃO E RESETA A ROLAGEM
+function prepararExibicao(lista) {
+    noticiasExibidas = lista;
+    paginaAtual = 1; // Volta para a página 1
+    document.getElementById("noticias").innerHTML = ""; // Limpa a tela antiga
+    mostrarMais(); // Renderiza o primeiro lote
+}
+
+// 🚀 4. RENDERIZA AS NOTÍCIAS AOS POUCOS
+function mostrarMais() {
+    const div = document.getElementById("noticias");
+
+    if (noticiasExibidas.length === 0) {
+        div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Nenhuma notícia encontrada.</p>";
+        return;
+    }
+
+    // Calcula o lote atual que vamos fatiar do array
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    const pedaco = noticiasExibidas.slice(inicio, fim);
+
+    // Se já passou do fim do array, não faz nada
+    if (pedaco.length === 0) return;
+
+    pedaco.forEach(noticia => {
         div.innerHTML += `
-            <div class="card">
+            <div class="card fade-in">
                 <img src="${noticia.imagem || 'https://via.placeholder.com/300x180'}" />
                 <div class="card-content">
                     <h3>${noticia.titulo}</h3>
@@ -33,22 +85,46 @@ function mostrar(lista) {
             </div>
         `;
     });
+
+    paginaAtual++; // Prepara para a próxima rolagem
 }
 
-async function buscar() {
-    const termo = document.getElementById("campoBusca").value;
-    if (termo.length >= 3) {
-        const res = await fetch(`${API_URL}/buscar/${termo}`);
-        const dados = await res.json();
-        mostrar(dados);
-    } else if (termo.length === 0) {
-        carregarNoticias();
+// 🚀 5. DETECTA A ROLAGEM DA PÁGINA (SCROLL)
+window.addEventListener('scroll', () => {
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+    // Se o usuário rolou até perto do fim da página (margem de 50px)
+    if (scrollTop + clientHeight >= scrollHeight - 50) {
+        mostrarMais(); // Dispara o carregamento de mais 6 notícias
     }
+});
+
+// BUSCA COM DELAY (Debounce) PARA NÃO TRAVAR O SITE
+let timeoutBusca = null;
+async function buscar() {
+    clearTimeout(timeoutBusca); // Limpa o timer anterior
+    
+    // Aguarda o usuário parar de digitar por 500ms antes de ir no banco
+    timeoutBusca = setTimeout(async () => {
+        const termo = document.getElementById("campoBusca").value;
+        const div = document.getElementById("noticias");
+
+        if (termo.length >= 3) {
+            div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Pesquisando por "${termo}"...</p>`;
+            const res = await fetch(`${API_URL}/buscar/${termo}`);
+            const dados = await res.json();
+            prepararExibicao(dados);
+        } else if (termo.length === 0) {
+            carregarNoticias();
+        }
+    }, 500); 
 }
 
 async function registrarAcesso(url) {
     await fetch(`${API_URL}/contar_acesso/${encodeURIComponent(url)}`, { method: 'POST' });
 }
+
+// Mantém sua função de Dashboard original aqui (apenas omiti para economizar espaço, mantenha a que você já tem no arquivo!)
+// async function mostrarAbaAnalise() { ... }
 
 async function mostrarAbaAnalise() {
     const div = document.getElementById("noticias");
