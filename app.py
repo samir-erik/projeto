@@ -2,6 +2,8 @@ from flask import Flask, jsonify
 import psycopg2
 from flask_cors import CORS
 import os
+from collections import Counter
+import re
 
 app = Flask(__name__)
 CORS(app)
@@ -57,9 +59,11 @@ def dashboard():
     conn = conectar()
     cursor = conn.cursor()
     
+    # 1. Estatísticas Gerais
     cursor.execute("SELECT COUNT(*), SUM(COALESCE(acessos, 0)) FROM noticias")
     total_noticias, total_acessos = cursor.fetchone()
     
+    # 2. Volume por Categoria
     cursor.execute("SELECT categoria, COUNT(*) FROM noticias GROUP BY categoria")
     por_categoria = [
         {
@@ -69,6 +73,21 @@ def dashboard():
         } for d in cursor.fetchall()
     ]
     
+    # 3. Nuvem de Palavras (A novidade!)
+    cursor.execute("SELECT titulo FROM noticias")
+    titulos = cursor.fetchall()
+    
+    stop_words = set(["o", "a", "os", "as", "de", "do", "da", "em", "um", "uma", "para", "com", "no", "na", "e", "é", "por", "mais", "que", "se", "foi", "ao", "das", "dos", "como", "sobre"])
+    
+    todas_palavras = []
+    for (titulo,) in titulos:
+        palavras = re.findall(r'\w+', titulo.lower())
+        todas_palavras.extend([p for p in palavras if p not in stop_words and len(p) > 3])
+    
+    nuvem_frequencia = Counter(todas_palavras).most_common(15)
+    nuvem_formatada = [{"palavra": p[0], "peso": p[1]} for p in nuvem_frequencia]
+    
+    # 4. Ranking Top 5
     cursor.execute("SELECT titulo, COALESCE(acessos, 0) as Cliques FROM noticias WHERE acessos > 0 ORDER BY acessos DESC LIMIT 5")
     ranking = [{"titulo": d[0], "acessos": d[1]} for d in cursor.fetchall()]
     
@@ -76,6 +95,7 @@ def dashboard():
     return jsonify({
         "estatisticas_gerais": {"total": total_noticias, "cliques_totais": int(total_acessos or 0)},
         "por_categoria": por_categoria,
+        "nuvem_palavras": nuvem_formatada,
         "ranking_top_5": ranking
     })
 

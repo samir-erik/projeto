@@ -78,6 +78,7 @@ async function mostrarAbaAnalise() {
 
                 <div class="analise-detalhada">
                     <div class="secao-stats">
+                    
                         <h3>Distribuição por Categoria</h3>
                         ${dados.por_categoria.map(cat => `
                             <div class="progresso-container">
@@ -91,7 +92,16 @@ async function mostrarAbaAnalise() {
                             </div>
                         `).join('')}
                     </div>
-
+                    <div class="secao-nuvem" style="grid-column: 1 / -1; margin-top: 20px;">
+                        <h3>☁️ Termos em Alta (Nuvem de Palavras)</h3>
+                        <div class="nuvem-container">
+                            ${dados.nuvem_palavras.map(p => `
+                                <span style="font-size: ${12 + (p.peso * 3)}px; opacity: ${0.6 + (p.peso / 20)};">
+                                    ${p.palavra}
+                                </span>
+                            `).join(' ')}
+                        </div>
+                    </div>
                     <div class="secao-ranking">
                         <h3>🏆 Top 5 Mais Lidas</h3>
                         <table class="tabela-analise">
