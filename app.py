@@ -88,17 +88,43 @@ def dashboard():
     cursor.execute("SELECT titulo, COALESCE(acessos, 0) as Cliques FROM noticias WHERE acessos > 0 ORDER BY acessos DESC LIMIT 5")
     ranking = [{"titulo": d[0], "acessos": d[1]} for d in cursor.fetchall()]
 
-    # 🚀 5. PRINCIPAIS FONTES (A NOVIDADE!)
+    # 5. Principais Fontes
     cursor.execute("SELECT fonte, COUNT(*) FROM noticias GROUP BY fonte ORDER BY COUNT(*) DESC LIMIT 6")
     por_fonte = [{"fonte": d[0], "quantidade": d[1]} for d in cursor.fetchall()]
+
+    # 🚀 6. Perfil Jornalístico (Tamanho Médio do Título)
+    cursor.execute("SELECT categoria, ROUND(AVG(LENGTH(titulo)), 0) FROM noticias GROUP BY categoria ORDER BY AVG(LENGTH(titulo)) DESC")
+    tamanho_titulos = [{"categoria": d[0], "media_caracteres": int(d[1] or 0)} for d in cursor.fetchall()]
+
+    # 🚀 7. Qualidade dos Dados da API (Completude)
+    cursor.execute("""
+        SELECT 
+            COUNT(*) as total,
+            SUM(CASE WHEN imagem IS NULL OR imagem = 'None' OR imagem = '' THEN 1 ELSE 0 END) as sem_imagem,
+            SUM(CASE WHEN descricao IS NULL OR descricao = 'None' OR descricao = '' THEN 1 ELSE 0 END) as sem_descricao
+        FROM noticias
+    """)
+    q_total, sem_img, sem_desc = cursor.fetchone()
+    
+    pct_com_img = round(((q_total - (sem_img or 0)) / q_total) * 100, 1) if q_total > 0 else 0
+    pct_com_desc = round(((q_total - (sem_desc or 0)) / q_total) * 100, 1) if q_total > 0 else 0
+    
+    qualidade_dados = {
+        "com_imagem": pct_com_img,
+        "com_descricao": pct_com_desc
+    }
     
     conn.close()
+    
+    # Atualizando o retorno do JSON para incluir as novas métricas
     return jsonify({
         "estatisticas_gerais": {"total": total_noticias, "cliques_totais": int(total_acessos or 0)},
         "por_categoria": por_categoria,
         "nuvem_palavras": nuvem_formatada,
         "ranking_top_5": ranking,
-        "por_fonte": por_fonte # Adicionando ao JSON final
+        "por_fonte": por_fonte,
+        "tamanho_titulos": tamanho_titulos,
+        "qualidade_dados": qualidade_dados
     })
 
 @app.route("/buscar/<termo>")

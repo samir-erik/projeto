@@ -164,6 +164,47 @@ async function mostrarAbaAnalise() {
                             `).join('')}
                         </ul>
                     </div>
+                    <div class="secao-metadados" style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px;">
+                    
+                    <div class="card-metadados">
+                        <h3>✍️ Perfil de Redação</h3>
+                        <p class="desc-metadado">Média de caracteres nos títulos por categoria:</p>
+                        <ul class="lista-fontes">
+                            ${dados.tamanho_titulos.map(t => `
+                                <li>
+                                    <span class="nome-fonte">${t.categoria}</span>
+                                    <span class="qtd-fonte" style="background: #e0f2f1; color: #00897b;"><strong>${t.media_caracteres}</strong> letras</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div class="card-metadados">
+                        <h3>🛠️ Qualidade da API (Completude)</h3>
+                        <p class="desc-metadado">Taxa de sucesso na captação dos dados originais:</p>
+                        
+                        <div class="progresso-container" style="margin-top: 25px;">
+                            <div class="progresso-texto">
+                                <span>📸 Notícias com Imagem Válida</span>
+                                <span>${dados.qualidade_dados.com_imagem}%</span>
+                            </div>
+                            <div class="barra-fundo">
+                                <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_imagem}%; background: linear-gradient(90deg, #ff9800, #ff5722);"></div>
+                            </div>
+                        </div>
+
+                        <div class="progresso-container" style="margin-top: 25px;">
+                            <div class="progresso-texto">
+                                <span>📝 Notícias com Descrição</span>
+                                <span>${dados.qualidade_dados.com_descricao}%</span>
+                            </div>
+                            <div class="barra-fundo">
+                                <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_descricao}%; background: linear-gradient(90deg, #00bcd4, #2196f3);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
                     <div class="secao-stats">
                     
                         <h3>Distribuição por Categoria</h3>
