@@ -115,60 +115,6 @@ async function mostrarAbaAnalise() {
         div.innerHTML = "<p>Erro ao carregar o dashboard. Verifique a conexão com a API.</p>";
     }
 }
-css
-/* ESTILOS DO DASHBOARD AVANÇADO */
-.dashboard-aba {
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-}
 
-.dashboard-header { margin-bottom: 30px; }
-.dashboard-header h2 { font-size: 2rem; color: var(--text-main); }
-
-.metrics-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.card-metrica {
-    flex: 1;
-    padding: 25px;
-    background: #f8f9fa;
-    border-radius: 15px;
-    border-bottom: 4px solid var(--primary);
-    text-align: center;
-}
-
-.card-metrica span { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; }
-.card-metrica strong { display: block; font-size: 2rem; color: var(--primary); margin-top: 5px; }
-
-.analise-detalhada {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-}
-
-/* Barras de Progresso */
-.progresso-container { margin-bottom: 20px; }
-.progresso-texto { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
-.barra-fundo { background: #eee; height: 12px; border-radius: 6px; overflow: hidden; }
-.barra-preenchida { 
-    background: linear-gradient(90deg, var(--primary), var(--accent)); 
-    height: 100%; 
-    transition: width 1s ease-in-out; 
-}
-
-/* Tabela de Ranking */
-.tabela-analise { width: 100%; border-collapse: collapse; }
-.tabela-analise th { text-align: left; padding: 12px; color: var(--text-muted); border-bottom: 2px solid #eee; }
-.tabela-analise td { padding: 15px 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-
-@media (max-width: 900px) {
-    .analise-detalhada { grid-template-columns: 1fr; }
-    .metrics-row { flex-direction: column; }
-}
 
 carregarNoticias();
