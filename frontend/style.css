@@ -301,3 +301,47 @@ header h1 {
         transform: translateY(0);
     }
 }
+
+/* LISTA DE FONTES / PORTAIS */
+.secao-fontes {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    border-top: 4px solid var(--primary); /* Linha azul em cima para destacar */
+}
+
+.secao-fontes h3 {
+    margin-bottom: 20px;
+    color: var(--text-main);
+}
+
+.lista-fontes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lista-fontes li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.lista-fontes li:last-child {
+    border-bottom: none;
+}
+
+.nome-fonte {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.qtd-fonte {
+    background: #e8f0fe;
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}

@@ -153,6 +153,17 @@ async function mostrarAbaAnalise() {
                 </div>
 
                 <div class="analise-detalhada">
+                <div class="secao-fontes">
+                        <h3>📡 Principais Portais (Fontes)</h3>
+                        <ul class="lista-fontes">
+                            ${dados.por_fonte.map(f => `
+                                <li>
+                                    <span class="nome-fonte">${f.fonte}</span>
+                                    <span class="qtd-fonte"><strong>${f.quantidade}</strong> notícias</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
                     <div class="secao-stats">
                     
                         <h3>Distribuição por Categoria</h3>
