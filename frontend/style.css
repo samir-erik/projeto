@@ -372,3 +372,8 @@ header h1 {
         gap: 20px !important;
     }
 }
+
+/* Atualize se necessário ou apenas garanta que está assim no HTML inline */
+.secao-metadados {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+}

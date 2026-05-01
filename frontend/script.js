@@ -192,6 +192,25 @@ async function mostrarAbaAnalise() {
                                 <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_imagem}%; background: linear-gradient(90deg, #ff9800, #ff5722);"></div>
                             </div>
                         </div>
+                        <div class="card-metadados">
+                        <h3>🌡️ Termômetro das Notícias</h3>
+                        <p class="desc-metadado">Qual é o "humor" das manchetes hoje?</p>
+                        
+                        <div style="text-align: center; margin-top: 20px;">
+                            <h4 style="font-size: 1.6rem; color: ${dados.sentimento.cor}; margin-bottom: 15px;">
+                                ${dados.sentimento.humor}
+                            </h4>
+                            
+                            <div style="background: #f44336; height: 25px; border-radius: 12px; overflow: hidden; display: flex; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                                <div style="width: ${dados.sentimento.score_pos}%; background: #4caf50; transition: width 1s ease-in-out;" title="Notícias Positivas"></div>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 8px; color: var(--text-muted); font-weight: bold;">
+                                <span style="color: #4caf50;">↑ Positivas (${dados.sentimento.positivos})</span>
+                                <span style="color: #f44336;">↓ Negativas (${dados.sentimento.negativos})</span>
+                            </div>
+                        </div>
+                    </div>
 
                         <div class="progresso-container" style="margin-top: 25px;">
                             <div class="progresso-texto">

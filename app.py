@@ -113,10 +113,42 @@ def dashboard():
         "com_imagem": pct_com_img,
         "com_descricao": pct_com_desc
     }
+
+    # 🚀 8. Análise de Sentimento (Termômetro)
+    palavras_positivas = ["cresce", "alta", "cura", "vitória", "avanço", "sucesso", "ganha", "aumenta", "recuperação", "esperança", "inovação", "lucro", "melhora", "investimento", "acordo", "paz"]
+    palavras_negativas = ["crise", "queda", "morte", "alerta", "risco", "perde", "cai", "tensão", "guerra", "prejuízo", "crime", "violência", "medo", "inflação", "acidente", "erro", "ataque"]
+
+    pontos_positivos = 0
+    pontos_negativos = 0
+
+    for (titulo,) in titulos: # Usa a mesma variável de títulos da Nuvem de Palavras
+        titulo_min = titulo.lower()
+        # Conta quantas palavras positivas e negativas aparecem
+        for p in palavras_positivas:
+            if p in titulo_min: pontos_positivos += 1
+        for n in palavras_negativas:
+            if n in titulo_min: pontos_negativos += 1
+
+    total_sentimento = pontos_positivos + pontos_negativos
+    if total_sentimento == 0:
+        humor, cor, score_pos = "Neutro ⚖️", "#9e9e9e", 50
+    else:
+        score_pos = round((pontos_positivos / total_sentimento) * 100)
+        if score_pos >= 60:
+            humor, cor = "Positivo ☀️", "#4caf50"
+        elif score_pos <= 40:
+            humor, cor = "Tenso / Negativo ⛈️", "#f44336"
+        else:
+            humor, cor = "Misto ⛅", "#ff9800"
+
+    sentimento = {
+        "humor": humor, "cor": cor, "score_pos": score_pos, 
+        "positivos": pontos_positivos, "negativos": pontos_negativos
+    }
     
     conn.close()
     
-    # Atualizando o retorno do JSON para incluir as novas métricas
+    # Atualizando o retorno do JSON para incluir todas as métricas, incluindo o sentimento
     return jsonify({
         "estatisticas_gerais": {"total": total_noticias, "cliques_totais": int(total_acessos or 0)},
         "por_categoria": por_categoria,
@@ -124,9 +156,9 @@ def dashboard():
         "ranking_top_5": ranking,
         "por_fonte": por_fonte,
         "tamanho_titulos": tamanho_titulos,
-        "qualidade_dados": qualidade_dados
+        "qualidade_dados": qualidade_dados,
+        "sentimento": sentimento  # <-- Faltou adicionar esta linha!
     })
-
 @app.route("/buscar/<termo>")
 def buscar(termo):
     conn = conectar()
