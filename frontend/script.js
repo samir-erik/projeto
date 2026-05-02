@@ -243,20 +243,7 @@ async function mostrarAbaAnalise() {
                                 `).join('')}
                             </div>
                         </div>
-                    </div> <div class="secao-stats">
-                        <h3>Distribuição por Categoria</h3>
-                        ${dados.por_categoria.map(cat => `
-                            <div class="progresso-container">
-                                <div class="progresso-texto">
-                                    <span>${cat.categoria} (${cat.quantidade})</span>
-                                    <span>${cat.percentual}%</span>
-                                </div>
-                                <div class="barra-fundo">
-                                    <div class="barra-preenchida" style="width: ${cat.percentual}%"></div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
+                    </div> 
                     
                     <div class="secao-nuvem">
                         <h3>☁️ Termos em Alta (Nuvem de Palavras)</h3>
