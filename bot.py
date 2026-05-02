@@ -2,7 +2,7 @@ import requests
 import psycopg2
 
 # 🔑 SUA API (pode usar GNews ou outra)
-API_KEY = "01634258ed9ced032658a8ed5bdc5de1"
+API_KEY = "4790c1898eba8d3924a5d675cbd54e06"
 
 # 🔥 COLOCA AQUI (logo no topo)
 categorias_api = {
