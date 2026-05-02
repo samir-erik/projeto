@@ -245,17 +245,6 @@ async function mostrarAbaAnalise() {
                         </div>
                     </div> 
                     
-                    <div class="secao-nuvem">
-                        <h3>☁️ Termos em Alta (Nuvem de Palavras)</h3>
-                        <div class="nuvem-container">
-                            ${dados.nuvem_palavras.map(p => `
-                                <span style="font-size: ${12 + (p.peso * 3)}px; opacity: ${0.6 + (p.peso / 20)};">
-                                    ${p.palavra}
-                                </span>
-                            `).join(' ')}
-                        </div>
-                    </div>
-                    
                     <div class="secao-ranking" style="grid-column: 1 / -1; margin-top: 20px;">
                         <h3>🏆 Top 5 Mais Lidas</h3>
                         <table class="tabela-analise">
