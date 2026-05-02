@@ -2,6 +2,39 @@ const API_URL = "https://projeto-y7ry.onrender.com";
 const cacheNoticias = {};
 let noticiasExibidas = [], itensPorPagina = 9, paginaAtual = 1;
 
+// No topo do script_2.js, adicione:
+let datasValidas = [];
+
+// Função para carregar as datas permitidas ao abrir o site
+async function carregarConfiguracoes() {
+    const res = await fetch(`${API_URL}/datas_disponiveis`);
+    datasValidas = await res.json();
+    
+    // Opcional: Define a data mínima e máxima no calendário baseada no banco
+    if (datasValidas.length > 0) {
+        document.getElementById("campoData").min = datasValidas[datasValidas.length - 1];
+        document.getElementById("campoData").max = datasValidas[0];
+    }
+}
+
+// Chame essa função no final do arquivo
+carregarConfiguracoes();
+
+// Na sua função buscarPorData, adicione um alerta:
+async function buscarPorData() {
+    const dataSelecionada = document.getElementById("campoData").value;
+    
+    if (!dataSelecionada) { carregarNoticias(); return; }
+
+    // Verifica se a data escolhida existe no nosso array de datasValidas
+    if (!datasValidas.includes(dataSelecionada)) {
+        alert("Ops! Não temos notícias coletadas para este dia específico.");
+        return;
+    }
+    
+    // ... restante do código original de busca ...
+}
+
 // --- NAVEGAÇÃO E CACHE ---[cite: 9]
 async function carregarNoticias() {
     if (cacheNoticias['todas']) { prepararExibicao(cacheNoticias['todas']); return; }

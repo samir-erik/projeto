@@ -62,6 +62,16 @@ def filtrar_por_data(data_selecionada):
     
     return jsonify([{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados])
 
+@app.route("/datas_disponiveis")
+def datas_disponiveis():
+    conn = conectar()
+    cursor = conn.cursor()
+    # Puxa apenas as datas únicas (sem a hora) que existem no banco
+    cursor.execute("SELECT DISTINCT DATE(data_publicacao) FROM noticias ORDER BY DATE(data_publicacao) DESC")
+    datas = [d[0].strftime("%Y-%m-%d") for d in cursor.fetchall()]
+    conn.close()
+    return jsonify(datas)
+
 @app.route("/contar_acesso/<path:url>", methods=["POST"])
 def contar_acesso(url):
     try:
