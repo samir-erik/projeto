@@ -84,26 +84,50 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
         div.innerHTML = `
             <div class="dashboard-aba">
                 <div class="dashboard-header">
-                    <h2>📊 Inteligência de Dados</h2>
-                    <select id="filtroCategoriaDashboard" onchange="mostrarAbaAnalise(this.value)">
-                        <option value="Todas" ${categoria === 'Todas' ? 'selected' : ''}>Todas as Categorias</option>
-                        <option value="Tecnologia" ${categoria === 'Tecnologia' ? 'selected' : ''}>Tecnologia</option>
-                        <option value="Esportes" ${categoria === 'Esportes' ? 'selected' : ''}>Esportes</option>
-                        <option value="Economia" ${categoria === 'Economia' ? 'selected' : ''}>Economia</option>
-                    </select>
-                </div>
+            <div>
+                <h2>📊 Inteligência de Dados</h2>
+                <p style="color: #666; font-size: 0.95em; margin-top: 5px;">
+                    Base de dados atual: <strong>${dados.total}</strong> notícias analisadas.
+                </p>
+            </div>
+            <select id="filtroCategoriaDashboard" onchange="mostrarAbaAnalise(this.value)">
+                <option value="Todas" ${categoria === 'Todas' ? 'selected' : ''}>Todas as Categorias</option>
+                <option value="Tecnologia" ${categoria === 'Tecnologia' ? 'selected' : ''}>Tecnologia</option>
+                <option value="Esportes" ${categoria === 'Esportes' ? 'selected' : ''}>Esportes</option>
+                <option value="Economia" ${categoria === 'Economia' ? 'selected' : ''}>Economia</option>
+                <option value="Ciência" ${categoria === 'Ciência' ? 'selected' : ''}>Ciência</option>
+                <option value="Entretenimento" ${categoria === 'Entretenimento' ? 'selected' : ''}>Entretenimento</option>
+                <option value="Mundo" ${categoria === 'Mundo' ? 'selected' : ''}>Mundo</option>
+                <option value="Brasil" ${categoria === 'Brasil' ? 'selected' : ''}>Brasil</option>
+                <option value="Geral" ${categoria === 'Geral' ? 'selected' : ''}>Geral</option>
+            </select>
+        </div>
 
-                <div class="secao-metadados">
-                    <div class="card-analise"><h3>✍️ Perfil</h3><p>Tamanho médio: ${dados.media_titulo} carac.</p></div>
-                    <div class="card-analise"><h3>⚡ Agilidade</h3><div class="valor-frescor">${dados.frescor_medio}h</div></div>
-                    <div class="card-analise"><h3>🛠️ Qualidade</h3><p>📸 Img: ${dados.qualidade.img}% | 📝 Desc: ${dados.qualidade.desc}%</p></div>
+                <div class="secao-metadados">   
                     <div class="card-analise">
-                        <h3>🌡️ Termômetro (${dados.sentimento.humor})</h3>
-                        <div class="barra-sentimento-container">
-                            <div class="barra-sentimento" style="width: ${dados.sentimento.score_pos}%; background: ${dados.sentimento.cor}"></div>
-                        </div>
-                    </div>
-                    <div class="card-analise"><h3>📢 Sensacionalismo</h3><p>Clickbait: ${dados.sensacionalismo}%</p></div>
+                <h3>⚡ Agilidade (Delay Médio)</h3>
+                <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Tempo médio decorrido desde a publicação original das notícias.</p>
+                <div class="valor-frescor">${dados.frescor_medio}h</div>
+            </div>
+
+            <div class="card-analise">
+                <h3>📢 Sensacionalômetro</h3>
+                <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Mede a % de títulos que usam caixa alta ou pontuações de impacto (!, ?) para atrair cliques.</p>
+                <p style="font-size: 1.1em; margin-top: 10px;">Índice de "Clickbait": <strong>${dados.sensacionalismo}%</strong></p>
+            </div>
+                    
+                    <div class="card-analise">
+                <h3>🌡️ Termômetro (${dados.sentimento.humor})</h3>
+                <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Mede o nível de palavras positivas nos títulos.</p>
+                
+                <div class="barra-sentimento-container">
+                    <div class="barra-sentimento" style="width: ${dados.sentimento.score_pos}%; background: ${dados.sentimento.cor}"></div>
+                </div>
+                
+                <p style="text-align: right; font-size: 0.9em; margin-top: 5px; font-weight: bold; color: ${dados.sentimento.cor};">
+                    Índice de Positividade: ${dados.sentimento.score_pos}%
+                </p>
+            </div>
                     <div class="card-analise"><h3>⏰ Pico de Postagem</h3><p>🌅 M: ${dados.relogio.manha}% | ☀️ T: ${dados.relogio.tarde}% | 🌙 N: ${dados.relogio.noite}%</p></div>
                 </div>
             </div>

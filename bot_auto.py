@@ -9,7 +9,12 @@ categorias_api = {
     "Tecnologia": "technology",
     "Esportes": "sports",
     "Economia": "business",
-    "Geral": "general"
+    "Geral": "general",
+    "Saúde": "health",
+    "Ciência": "science",
+    "Entretenimento": "entertainment",
+    "Mundo": "world",       # NOVA
+    "Brasil": "nation"      # NOVA
 }
 
 def buscar_e_salvar():

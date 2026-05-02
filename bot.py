@@ -9,8 +9,13 @@ categorias_api = {
     "Tecnologia": "technology",
     "Esportes": "sports",
     "Economia": "business",
-    "Geral": "general"
-}   
+    "Geral": "general",
+    "Saúde": "health",
+    "Ciência": "science",
+    "Entretenimento": "entertainment",
+    "Mundo": "world",       # NOVA
+    "Brasil": "nation"      # NOVA
+}  
 
 conn = psycopg2.connect("postgresql://postgres.ruwagoepsujdemktrqno:C66236DBCc.@aws-1-us-east-1.pooler.supabase.com:5432/postgres")
 cursor = conn.cursor()

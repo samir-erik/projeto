@@ -289,3 +289,19 @@ header h1 {
     border: 1px solid #ddd;
     font-weight: 600;
 }
+/* --- ESTILOS DO TERMÔMETRO DE SENTIMENTO --- */
+.barra-sentimento-container {
+    width: 100%;
+    height: 20px;
+    background-color: #e0e0e0; /* Fundo cinza clarinho da barra */
+    border-radius: 10px;
+    margin-top: 15px;
+    overflow: hidden;
+}
+
+.barra-sentimento {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out, background-color 0.5s;
+    /* A largura e a cor são injetadas pelo JavaScript! */
+}
