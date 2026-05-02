@@ -113,7 +113,8 @@ def dashboard():
             "total": 0, "cliques": 0, "media_titulo": 0, "frescor_medio": 0,
             "qualidade": {"img": 0, "desc": 0}, "sensacionalismo": 0,
             "sentimento": {"humor": "Sem Dados", "cor": "#9e9e9e", "score_pos": 50},
-            "relogio": {"manha": 0, "tarde": 0, "noite": 0, "madrugada": 0}
+            "relogio": {"manha": 0, "tarde": 0, "noite": 0, "madrugada": 0},
+            "fontes": []
         })
 
     # 2. Cálculos de Médias Seguros
@@ -169,6 +170,10 @@ def dashboard():
     score_pos = round((pontos_pos / total_sent * 100)) if total_sent > 0 else 50
     humor, cor = ("Positivo ☀️", "#4caf50") if score_pos >= 60 else (("Tenso ⛈️", "#f44336") if score_pos <= 40 else ("Misto ⛅", "#ff9800"))
 
+    # NOVO: Busca as 3 fontes que mais publicam
+    cursor.execute(f"SELECT fonte, COUNT(*) as qtd FROM noticias {filtro_sql} GROUP BY fonte ORDER BY qtd DESC LIMIT 3", params)
+    top_fontes = [{"nome": row[0] or "Desconhecida", "quantidade": row[1]} for row in cursor.fetchall()]
+
     conn.close()
     
     return jsonify({
@@ -187,7 +192,8 @@ def dashboard():
             "tarde": round((tarde/total_noticias)*100, 1),
             "noite": round((noite/total_noticias)*100, 1), 
             "madrugada": round((madruga/total_noticias)*100, 1)
-        }
+        },
+        "fontes": top_fontes
     })
 
 if __name__ == '__main__':

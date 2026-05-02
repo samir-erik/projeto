@@ -17,6 +17,7 @@ categorias_api = {
     "Brasil": "nation"      # NOVA
 }  
 
+# Conexão com o banco de dados
 conn = psycopg2.connect("postgresql://postgres.ruwagoepsujdemktrqno:C66236DBCc.@aws-1-us-east-1.pooler.supabase.com:5432/postgres")
 cursor = conn.cursor()
 
@@ -30,25 +31,30 @@ for nome_categoria, api_categoria in categorias_api.items():
     res = requests.get(url)
     data = res.json()
 
-    for noticia in data["articles"]:
-        try:
-            cursor.execute("""
-                INSERT INTO noticias (titulo, descricao, url, imagem, fonte, data_publicacao, categoria)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (url) DO NOTHING
-            """, (
-                noticia["title"],
-                noticia["description"],
-                noticia["url"],
-                noticia["image"],
-                noticia["source"]["name"],
-                noticia["publishedAt"],
-                nome_categoria
-            ))
-        except:
-            pass
+    # NOVO: Checa se a API realmente mandou as notícias antes de tentar ler
+    if "articles" in data:
+        for noticia in data["articles"]:
+            try:
+                cursor.execute("""
+                    INSERT INTO noticias (titulo, descricao, url, imagem, fonte, data_publicacao, categoria)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (url) DO NOTHING
+                """, (
+                    noticia["title"],
+                    noticia["description"],
+                    noticia["url"],
+                    noticia["image"],
+                    noticia["source"]["name"],
+                    noticia["publishedAt"],
+                    nome_categoria
+                ))
+            except Exception as e:
+                print(f"Erro no banco: {e}")
+    else:
+        # Se não vier 'articles', imprime a mensagem de erro para sabermos o motivo (ex: limite da API)
+        print(f"⚠️ A API não mandou notícias para {nome_categoria}. Resposta: {data}")
 
 conn.commit()
 conn.close()
 
-print("✅ Notícias salvas com sucesso!")
+print("✅ Rotina de notícias finalizada!")

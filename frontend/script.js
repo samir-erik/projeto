@@ -2,40 +2,58 @@ const API_URL = "https://projeto-y7ry.onrender.com";
 const cacheNoticias = {};
 let noticiasExibidas = [], itensPorPagina = 9, paginaAtual = 1;
 
-// No topo do script_2.js, adicione:
 let datasValidas = [];
 
-// Função para carregar as datas permitidas ao abrir o site
 async function carregarConfiguracoes() {
     const res = await fetch(`${API_URL}/datas_disponiveis`);
     datasValidas = await res.json();
     
-    // Opcional: Define a data mínima e máxima no calendário baseada no banco
     if (datasValidas.length > 0) {
         document.getElementById("campoData").min = datasValidas[datasValidas.length - 1];
         document.getElementById("campoData").max = datasValidas[0];
     }
 }
 
-// Chame essa função no final do arquivo
 carregarConfiguracoes();
 
-// Na sua função buscarPorData, adicione um alerta:
 async function buscarPorData() {
     const dataSelecionada = document.getElementById("campoData").value;
     
-    if (!dataSelecionada) { carregarNoticias(); return; }
+    if (!dataSelecionada) { 
+        carregarNoticias(); 
+        return; 
+    }
 
-    // Verifica se a data escolhida existe no nosso array de datasValidas
     if (!datasValidas.includes(dataSelecionada)) {
         alert("Ops! Não temos notícias coletadas para este dia específico.");
         return;
     }
-    
-    // ... restante do código original de busca ...
+
+    const chaveCache = `data_${dataSelecionada}`;
+    if (cacheNoticias[chaveCache]) { 
+        prepararExibicao(cacheNoticias[chaveCache]); 
+        return; 
+    }
+
+    const div = document.getElementById("noticias");
+    div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Buscando notícias do dia ${dataSelecionada.split('-').reverse().join('/')}...</p>`;
+
+    try {
+        const res = await fetch(`${API_URL}/data/${dataSelecionada}`);
+        const dados = await res.json();
+        
+        if (dados.length === 0) {
+            div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Nenhuma notícia encontrada para esta data. Tente outro dia!</p>`;
+            return;
+        }
+
+        cacheNoticias[chaveCache] = dados;
+        prepararExibicao(dados);
+    } catch (e) { 
+        div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Erro ao filtrar por data.</p>"; 
+    }
 }
 
-// --- NAVEGAÇÃO E CACHE ---[cite: 9]
 async function carregarNoticias() {
     if (cacheNoticias['todas']) { prepararExibicao(cacheNoticias['todas']); return; }
     const div = document.getElementById("noticias");
@@ -84,7 +102,6 @@ function mostrarMais() {
     paginaAtual++;
 }
 
-// --- BUSCA E EVENTOS ---[cite: 9]
 let timeoutBusca = null;
 function buscar() {
     clearTimeout(timeoutBusca);
@@ -105,101 +122,115 @@ async function registrarAcesso(url) {
     fetch(`${API_URL}/contar_acesso/${encodeURIComponent(url)}`, { method: 'POST' });
 }
 
-// --- DASHBOARD (ABA DE ANALYTICS) ---[cite: 7, 9, 10]
+// --- DASHBOARD (ABA DE ANALYTICS) ---
+let graficoInstancia = null; // Para destruir o gráfico antigo ao mudar de categoria
+
 async function mostrarAbaAnalise(categoria = 'Todas') {
     const div = document.getElementById("noticias");
-    div.innerHTML = "Carregando inteligência de dados...";
+    div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Carregando inteligência de dados...</p>";
 
     try {
         const res = await fetch(`${API_URL}/dashboard?categoria=${categoria}`);
         const dados = await res.json();
 
+        // Gerar o HTML do pódio de fontes
+        let htmlFontes = '<ul class="lista-fontes" style="list-style:none; padding:0;">';
+        if (dados.fontes && dados.fontes.length > 0) {
+            dados.fontes.forEach((fonte, index) => {
+                let medalha = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
+                htmlFontes += `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #ddd;">
+                    <span>${medalha} ${fonte.nome}</span> 
+                    <strong>${fonte.quantidade} not.</strong>
+                </li>`;
+            });
+        } else {
+            htmlFontes += '<li>Sem dados de fontes</li>';
+        }
+        htmlFontes += '</ul>';
+
         div.innerHTML = `
             <div class="dashboard-aba">
                 <div class="dashboard-header">
-            <div>
-                <h2>📊 Inteligência de Dados</h2>
-                <p style="color: #666; font-size: 0.95em; margin-top: 5px;">
-                    Base de dados atual: <strong>${dados.total}</strong> notícias analisadas.
-                </p>
-            </div>
-            <select id="filtroCategoriaDashboard" onchange="mostrarAbaAnalise(this.value)">
-        <option value="Todas" ${categoria === 'Todas' ? 'selected' : ''}>Todas as Categorias</option>
-        <option value="Tecnologia" ${categoria === 'Tecnologia' ? 'selected' : ''}>Tecnologia</option>
-        <option value="Esportes" ${categoria === 'Esportes' ? 'selected' : ''}>Esportes</option>
-        <option value="Economia" ${categoria === 'Economia' ? 'selected' : ''}>Economia</option>
-        <option value="Geral" ${categoria === 'Geral' ? 'selected' : ''}>Geral</option>
-    </select>
-        </div>
+                    <div>
+                        <h2>📊 Inteligência de Dados</h2>
+                        <p style="color: #666; font-size: 0.95em; margin-top: 5px;">
+                            Base de dados atual: <strong>${dados.total}</strong> notícias analisadas.
+                        </p>
+                    </div>
+                    <select id="filtroCategoriaDashboard" onchange="mostrarAbaAnalise(this.value)">
+                        <option value="Todas" ${categoria === 'Todas' ? 'selected' : ''}>Todas as Categorias</option>
+                        <option value="Tecnologia" ${categoria === 'Tecnologia' ? 'selected' : ''}>Tecnologia</option>
+                        <option value="Esportes" ${categoria === 'Esportes' ? 'selected' : ''}>Esportes</option>
+                        <option value="Economia" ${categoria === 'Economia' ? 'selected' : ''}>Economia</option>
+                        <option value="Geral" ${categoria === 'Geral' ? 'selected' : ''}>Geral</option>
+                    </select>
+                </div>
 
                 <div class="secao-metadados">   
                     <div class="card-analise">
-                <h3>⚡ Agilidade (Delay Médio)</h3>
-                <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Tempo médio decorrido desde a publicação original das notícias.</p>
-                <div class="valor-frescor">${dados.frescor_medio}h</div>
-            </div>
+                        <h3>⚡ Agilidade (Delay Médio)</h3>
+                        <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Tempo decorrido desde a publicação original.</p>
+                        <div class="valor-frescor">${dados.frescor_medio}h</div>
+                    </div>
 
-            <div class="card-analise">
-                <h3>📢 Sensacionalômetro</h3>
-                <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Mede a % de títulos que usam caixa alta ou pontuações de impacto (!, ?) para atrair cliques.</p>
-                <p style="font-size: 1.1em; margin-top: 10px;">Índice de "Clickbait": <strong>${dados.sensacionalismo}%</strong></p>
-            </div>
+                    <div class="card-analise">
+                        <h3>📰 Top Fontes (Mídia)</h3>
+                        <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Portais que mais publicaram.</p>
+                        ${htmlFontes}
+                    </div>
                     
                     <div class="card-analise">
-                <h3>🌡️ Termômetro (${dados.sentimento.humor})</h3>
-                <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Mede o nível de palavras positivas nos títulos.</p>
-                
-                <div class="barra-sentimento-container">
-                    <div class="barra-sentimento" style="width: ${dados.sentimento.score_pos}%; background: ${dados.sentimento.cor}"></div>
-                </div>
-                
-                <p style="text-align: right; font-size: 0.9em; margin-top: 5px; font-weight: bold; color: ${dados.sentimento.cor};">
-                    Índice de Positividade: ${dados.sentimento.score_pos}%
-                </p>
-            </div>
-                    <div class="card-analise"><h3>⏰ Pico de Postagem</h3><p>🌅 M: ${dados.relogio.manha}% | ☀️ T: ${dados.relogio.tarde}% | 🌙 N: ${dados.relogio.noite}%</p></div>
+                        <h3>🌡️ Termômetro (${dados.sentimento.humor})</h3>
+                        <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Mede o nível de palavras positivas nos títulos.</p>
+                        
+                        <div class="barra-sentimento-container">
+                            <div class="barra-sentimento" style="width: ${dados.sentimento.score_pos}%; background: ${dados.sentimento.cor}"></div>
+                        </div>
+                        
+                        <p style="text-align: right; font-size: 0.9em; margin-top: 5px; font-weight: bold; color: ${dados.sentimento.cor};">
+                            Índice de Positividade: ${dados.sentimento.score_pos}%
+                        </p>
+                    </div>
+
+                    <div class="card-analise" style="position: relative; height: 230px;">
+                        <h3 style="margin-bottom: 5px;">⏰ Pico de Postagem</h3>
+                        <canvas id="graficoRelogio"></canvas>
+                    </div>
                 </div>
             </div>
         `;
-    } catch (e) {
-        div.innerHTML = "<p style='color:red'>Erro ao conectar com o servidor. Verifica o terminal do Python.</p>";
-        console.error(e);
-    }
-}
 
-// --- NOVO: FILTRO POR DATA ---
-async function buscarPorData() {
-    const dataSelecionada = document.getElementById("campoData").value;
-    
-    // Se o usuário limpar a data, volta a carregar todas as notícias
-    if (!dataSelecionada) {
-        carregarNoticias();
-        return;
-    }
+        // Renderizar o Gráfico com Chart.js
+        const ctx = document.getElementById('graficoRelogio');
+        if (ctx) {
+            // Destrói o gráfico anterior se existir, para não sobrepor ao mudar de categoria
+            if (graficoInstancia) {
+                graficoInstancia.destroy();
+            }
 
-    // Usando a mesma lógica de cache inteligente que você já fez para as categorias
-    const chaveCache = `data_${dataSelecionada}`;
-    if (cacheNoticias[chaveCache]) { 
-        prepararExibicao(cacheNoticias[chaveCache]); 
-        return; 
-    }
-
-    const div = document.getElementById("noticias");
-    div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Buscando notícias do dia ${dataSelecionada.split('-').reverse().join('/')}...</p>`;
-
-    try {
-        const res = await fetch(`${API_URL}/data/${dataSelecionada}`);
-        const dados = await res.json();
-        
-        if (dados.length === 0) {
-            div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Nenhuma notícia encontrada para esta data. Tente outro dia!</p>`;
-            return;
+            graficoInstancia = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Manhã', 'Tarde', 'Noite', 'Madrugada'],
+                    datasets: [{
+                        data: [dados.relogio.manha, dados.relogio.tarde, dados.relogio.noite, dados.relogio.madrugada],
+                        backgroundColor: ['#ffeb3b', '#ff9800', '#3f51b5', '#212121'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
         }
 
-        cacheNoticias[chaveCache] = dados;
-        prepararExibicao(dados);
-    } catch (e) { 
-        div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Erro ao filtrar por data.</p>"; 
+    } catch (e) {
+        div.innerHTML = "<p style='color:red; text-align:center;'>Erro ao conectar com o servidor. Verifica o terminal do Python.</p>";
+        console.error(e);
     }
 }
 
