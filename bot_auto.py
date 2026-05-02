@@ -2,7 +2,7 @@ import requests
 import psycopg2
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-API_KEY = "01634258ed9ced032658a8ed5bdc5de1"
+API_KEY = "4790c1898eba8d3924a5d675cbd54e06"
 DB_URI = "postgresql://postgres.ruwagoepsujdemktrqno:C66236DBCc.@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
 
 categorias_api = {
