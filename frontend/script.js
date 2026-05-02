@@ -91,16 +91,12 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
                 </p>
             </div>
             <select id="filtroCategoriaDashboard" onchange="mostrarAbaAnalise(this.value)">
-                <option value="Todas" ${categoria === 'Todas' ? 'selected' : ''}>Todas as Categorias</option>
-                <option value="Tecnologia" ${categoria === 'Tecnologia' ? 'selected' : ''}>Tecnologia</option>
-                <option value="Esportes" ${categoria === 'Esportes' ? 'selected' : ''}>Esportes</option>
-                <option value="Economia" ${categoria === 'Economia' ? 'selected' : ''}>Economia</option>
-                <option value="Ciência" ${categoria === 'Ciência' ? 'selected' : ''}>Ciência</option>
-                <option value="Entretenimento" ${categoria === 'Entretenimento' ? 'selected' : ''}>Entretenimento</option>
-                <option value="Mundo" ${categoria === 'Mundo' ? 'selected' : ''}>Mundo</option>
-                <option value="Brasil" ${categoria === 'Brasil' ? 'selected' : ''}>Brasil</option>
-                <option value="Geral" ${categoria === 'Geral' ? 'selected' : ''}>Geral</option>
-            </select>
+        <option value="Todas" ${categoria === 'Todas' ? 'selected' : ''}>Todas as Categorias</option>
+        <option value="Tecnologia" ${categoria === 'Tecnologia' ? 'selected' : ''}>Tecnologia</option>
+        <option value="Esportes" ${categoria === 'Esportes' ? 'selected' : ''}>Esportes</option>
+        <option value="Economia" ${categoria === 'Economia' ? 'selected' : ''}>Economia</option>
+        <option value="Geral" ${categoria === 'Geral' ? 'selected' : ''}>Geral</option>
+    </select>
         </div>
 
                 <div class="secao-metadados">   
@@ -135,6 +131,42 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
     } catch (e) {
         div.innerHTML = "<p style='color:red'>Erro ao conectar com o servidor. Verifica o terminal do Python.</p>";
         console.error(e);
+    }
+}
+
+// --- NOVO: FILTRO POR DATA ---
+async function buscarPorData() {
+    const dataSelecionada = document.getElementById("campoData").value;
+    
+    // Se o usuário limpar a data, volta a carregar todas as notícias
+    if (!dataSelecionada) {
+        carregarNoticias();
+        return;
+    }
+
+    // Usando a mesma lógica de cache inteligente que você já fez para as categorias
+    const chaveCache = `data_${dataSelecionada}`;
+    if (cacheNoticias[chaveCache]) { 
+        prepararExibicao(cacheNoticias[chaveCache]); 
+        return; 
+    }
+
+    const div = document.getElementById("noticias");
+    div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Buscando notícias do dia ${dataSelecionada.split('-').reverse().join('/')}...</p>`;
+
+    try {
+        const res = await fetch(`${API_URL}/data/${dataSelecionada}`);
+        const dados = await res.json();
+        
+        if (dados.length === 0) {
+            div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Nenhuma notícia encontrada para esta data. Tente outro dia!</p>`;
+            return;
+        }
+
+        cacheNoticias[chaveCache] = dados;
+        prepararExibicao(dados);
+    } catch (e) { 
+        div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Erro ao filtrar por data.</p>"; 
     }
 }
 

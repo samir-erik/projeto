@@ -44,6 +44,24 @@ def buscar(termo):
     conn.close()
     return jsonify([{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados])
 
+@app.route("/data/<data_selecionada>")
+def filtrar_por_data(data_selecionada):
+    conn = conectar()
+    cursor = conn.cursor()
+    
+    # O comando DATE() do PostgreSQL ignora as horas e pega só o dia (YYYY-MM-DD)
+    cursor.execute("""
+        SELECT titulo, descricao, url, imagem, categoria 
+        FROM noticias 
+        WHERE DATE(data_publicacao) = %s 
+        ORDER BY data_publicacao DESC
+    """, (data_selecionada,))
+    
+    dados = cursor.fetchall()
+    conn.close()
+    
+    return jsonify([{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados])
+
 @app.route("/contar_acesso/<path:url>", methods=["POST"])
 def contar_acesso(url):
     try:
