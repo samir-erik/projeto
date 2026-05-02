@@ -2,6 +2,9 @@ const API_URL = "https://projeto-y7ry.onrender.com";
 const cacheNoticias = {};
 let noticiasExibidas = [], itensPorPagina = 9, paginaAtual = 1;
 
+// NOVO: Controle de tela para evitar que a rolagem infinita destrua os gráficos
+let exibindoDashboard = false; 
+
 let datasValidas = [];
 
 async function carregarConfiguracoes() {
@@ -79,17 +82,24 @@ async function filtrar(categoria) {
 }
 
 function prepararExibicao(lista) {
-    noticiasExibidas = lista; paginaAtual = 1;
+    exibindoDashboard = false; // Garante que saiu do modo Dashboard
+    noticiasExibidas = lista; 
+    paginaAtual = 1;
     document.getElementById("noticias").innerHTML = "";
     mostrarMais();
 }
 
 function mostrarMais() {
+    // PROTEÇÃO MÁXIMA: Se estiver no Dashboard, aborta a injeção de notícias!
+    if (exibindoDashboard) return; 
+
     const div = document.getElementById("noticias");
     const pedaco = noticiasExibidas.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
     if (pedaco.length === 0) return;
+    
+    let htmlNovo = "";
     pedaco.forEach(noticia => {
-        div.innerHTML += `
+        htmlNovo += `
             <div class="card fade-in">
                 <img src="${noticia.imagem || 'https://via.placeholder.com/300x180'}" />
                 <div class="card-content">
@@ -99,6 +109,9 @@ function mostrarMais() {
                 </div>
             </div>`;
     });
+    
+    // Usando insertAdjacentHTML ao invés de innerHTML += para não destruir a tela
+    div.insertAdjacentHTML('beforeend', htmlNovo);
     paginaAtual++;
 }
 
@@ -128,6 +141,8 @@ let graficoFontesInstancia = null;
 let graficoDelayInstancia = null; 
 
 async function mostrarAbaAnalise(categoria = 'Todas') {
+    exibindoDashboard = true; // Avisa o sistema que estamos na tela de gráficos!
+
     const div = document.getElementById("noticias");
     div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Carregando inteligência de dados...</p>";
 
@@ -157,7 +172,6 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
                 <div class="secao-metadados">
                     <div class="card-analise">
                         <h3 style="margin-bottom: 15px;">📰 Top 5 Veículos (Fontes)</h3>
-                        <!-- Caixa protetora do gráfico -->
                         <div style="position: relative; height: 250px; width: 100%;">
                             <canvas id="graficoFontes"></canvas>
                         </div>
@@ -165,7 +179,6 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
 
                     <div class="card-analise">
                         <h3 style="margin-bottom: 15px;">⏰ Pico de Postagem</h3>
-                        <!-- Caixa protetora do gráfico -->
                         <div style="position: relative; height: 250px; width: 100%;">
                             <canvas id="graficoRelogio"></canvas>
                         </div>
@@ -174,17 +187,14 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
 
                 <!-- LINHA 2: NOVO GRÁFICO DE DELAY E SENTIMENTO -->
                 <div class="secao-metadados" style="margin-top: 20px;">
-                    <!-- Gráfico Ocupando 2/3 da tela -->
                     <div class="card-analise" style="grid-column: span 2;">
                         <h3 style="margin-bottom: 5px;">⚡ Histórico de Delay (Últimas Notícias)</h3>
                         <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">Tempo decorrido entre a publicação no portal original e a nossa coleta.</p>
                         
-                        <!-- Caixa protetora do gráfico -->
                         <div style="position: relative; height: 220px; width: 100%;">
                             <canvas id="graficoDelay"></canvas>
                         </div>
                         
-                        <!-- MÉDIA NO RODAPÉ DO GRÁFICO -->
                         <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
                             <p style="font-size: 1.1em; color: var(--text-main);">
                                 Média Geral de Delay da Categoria: <strong style="font-size: 1.5em; color: var(--primary);">${dados.frescor_medio}h</strong>
@@ -192,7 +202,6 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
                         </div>
                     </div>
 
-                    <!-- Termômetro ao lado -->
                     <div class="card-analise" style="display: flex; flex-direction: column; justify-content: center;">
                         <h3 style="text-align:center;">🌡️ Termômetro</h3>
                         <p style="text-align:center; font-size: 1.2em; font-weight:bold; color: ${dados.sentimento.cor}; margin: 10px 0;">
