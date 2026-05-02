@@ -125,7 +125,7 @@ async function registrarAcesso(url) {
 // --- DASHBOARD (ABA DE ANALYTICS) ---
 let graficoRelogioInstancia = null; 
 let graficoFontesInstancia = null; 
-let graficoDelayInstancia = null; // NOVO: Variável para o gráfico de Delay
+let graficoDelayInstancia = null; 
 
 async function mostrarAbaAnalise(categoria = 'Todas') {
     const div = document.getElementById("noticias");
@@ -155,25 +155,32 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
 
                 <!-- LINHA 1: FONTES E PICO DE POSTAGEM -->
                 <div class="secao-metadados">
-                    <div class="card-analise" style="position: relative; height: 300px;">
+                    <div class="card-analise">
                         <h3 style="margin-bottom: 15px;">📰 Top 5 Veículos (Fontes)</h3>
-                        <canvas id="graficoFontes"></canvas>
+                        <!-- Caixa protetora do gráfico -->
+                        <div style="position: relative; height: 250px; width: 100%;">
+                            <canvas id="graficoFontes"></canvas>
+                        </div>
                     </div>
 
-                    <div class="card-analise" style="position: relative; height: 300px;">
+                    <div class="card-analise">
                         <h3 style="margin-bottom: 15px;">⏰ Pico de Postagem</h3>
-                        <canvas id="graficoRelogio"></canvas>
+                        <!-- Caixa protetora do gráfico -->
+                        <div style="position: relative; height: 250px; width: 100%;">
+                            <canvas id="graficoRelogio"></canvas>
+                        </div>
                     </div>
                 </div>
 
                 <!-- LINHA 2: NOVO GRÁFICO DE DELAY E SENTIMENTO -->
                 <div class="secao-metadados" style="margin-top: 20px;">
                     <!-- Gráfico Ocupando 2/3 da tela -->
-                    <div class="card-analise" style="position: relative; grid-column: span 2; height: auto;">
+                    <div class="card-analise" style="grid-column: span 2;">
                         <h3 style="margin-bottom: 5px;">⚡ Histórico de Delay (Últimas Notícias)</h3>
                         <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">Tempo decorrido entre a publicação no portal original e a nossa coleta.</p>
                         
-                        <div style="height: 200px;">
+                        <!-- Caixa protetora do gráfico -->
+                        <div style="position: relative; height: 220px; width: 100%;">
                             <canvas id="graficoDelay"></canvas>
                         </div>
                         
@@ -245,7 +252,7 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
             });
         }
 
-        // 3. NOVO: Gráfico de Linhas (Delay)
+        // 3. Gráfico de Linhas (Delay)
         const ctxDelay = document.getElementById('graficoDelay');
         if (ctxDelay && dados.historico_delay && dados.historico_delay.dados.length > 0) {
             graficoDelayInstancia = new Chart(ctxDelay, {
@@ -255,10 +262,10 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
                     datasets: [{
                         label: 'Delay (Horas)',
                         data: dados.historico_delay.dados,
-                        borderColor: '#f44336', // Cor vermelha para indicar o alerta de tempo
+                        borderColor: '#f44336',
                         backgroundColor: 'rgba(244, 67, 54, 0.1)',
                         borderWidth: 2,
-                        tension: 0.3, // Deixa a linha mais suave (curvada)
+                        tension: 0.3,
                         fill: true,
                         pointRadius: 3
                     }]
@@ -268,7 +275,7 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
                     maintainAspectRatio: false,
                     scales: { 
                         y: { beginAtZero: true, title: { display: true, text: 'Horas' } },
-                        x: { ticks: { display: false } } // Esconde o nome cortado das notícias no eixo X para ficar limpo
+                        x: { ticks: { display: false } } 
                     },
                     plugins: { legend: { display: false } }
                 }
