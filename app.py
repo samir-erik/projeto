@@ -170,20 +170,59 @@ def dashboard():
         {"periodo": p, "quantidade": q, "percentual": round((q / total_com_hora) * 100) if total_com_hora > 0 else 0} 
         for p, q in periodos.items()
     ]
+
+    # 🚀 10. Índice de Sensacionalismo (Clickbait Score)
+    cursor.execute("SELECT titulo, categoria FROM noticias")
+    titulos_categorias = cursor.fetchall()
+
+    total_titulos_click = len(titulos_categorias)
+    clickbait_count = 0
+    cat_sensacionalista = {}
+
+    for titulo, cat in titulos_categorias:
+        if cat not in cat_sensacionalista:
+            cat_sensacionalista[cat] = 0
+            
+        # Regra do Sensacionalismo: Tem "!" ou "?" ou uma palavra GRANDE TODA EM MAIÚSCULO
+        tem_caixa_alta = any(palavra.isupper() and len(palavra) > 4 for palavra in titulo.split())
+        
+        if '!' in titulo or '?' in titulo or tem_caixa_alta:
+            clickbait_count += 1
+            cat_sensacionalista[cat] += 1
+
+    pct_clickbait = round((clickbait_count / total_titulos_click) * 100, 1) if total_titulos_click > 0 else 0
+    cat_campea = max(cat_sensacionalista, key=cat_sensacionalista.get) if clickbait_count > 0 else "N/A"
+
+    sensacionalismo = {
+        "percentual": pct_clickbait,
+        "total_clickbait": clickbait_count,
+        "categoria_lider": cat_campea
+    }
+
+    # 🚀 11. Latência do Robô (Frescor da Informação)
+    # Calcula a idade média da notícia (diferença em horas entre a publicação original e agora)
+    try:
+        cursor.execute("SELECT ROUND(AVG(EXTRACT(EPOCH FROM (NOW() - data_publicacao))/3600), 1) FROM noticias WHERE data_publicacao IS NOT NULL")
+        frescor_resultado = cursor.fetchone()[0]
+        frescor_horas = float(frescor_resultado) if frescor_resultado else 0
+    except:
+        frescor_horas = 0 # Caso haja algum erro no formato da data
     
     conn.close()
     
     # Atualizando o retorno do JSON para incluir todas as métricas, incluindo o sentimento
+    # Atualizando o retorno do JSON para incluir as novas métricas
     return jsonify({
         "estatisticas_gerais": {"total": total_noticias, "cliques_totais": int(total_acessos or 0)},
         "por_categoria": por_categoria,
-        "nuvem_palavras": nuvem_formatada,
         "ranking_top_5": ranking,
         "por_fonte": por_fonte,
         "tamanho_titulos": tamanho_titulos,
         "qualidade_dados": qualidade_dados,
         "sentimento": sentimento,
-        "relogio": relogio  # <-- Adicione esta linha!
+        "relogio": relogio,
+        "sensacionalismo": sensacionalismo, # <-- NOVA
+        "frescor_horas": frescor_horas      # <-- NOVA
     })
 
 

@@ -165,46 +165,10 @@ async function mostrarAbaAnalise() {
                         </ul>
                     </div>
 
+                    <!-- 🚀 SEÇÃO DE METADADOS: 4 CARTÕES ALINHADOS -->
                     <div class="secao-metadados" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
                         
-                        <div class="card-metadados">
-                            <h3>✍️ Perfil de Redação</h3>
-                            <p class="desc-metadado">Média de caracteres nos títulos:</p>
-                            <ul class="lista-fontes">
-                                ${dados.tamanho_titulos.map(t => `
-                                    <li>
-                                        <span class="nome-fonte">${t.categoria}</span>
-                                        <span class="qtd-fonte" style="background: #e0f2f1; color: #00897b;"><strong>${t.media_caracteres}</strong> letras</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                        
-                        <div class="card-metadados">
-                            <h3>🛠️ Qualidade da API</h3>
-                            <p class="desc-metadado">Taxa de sucesso na captação:</p>
-                            
-                            <div class="progresso-container" style="margin-top: 20px;">
-                                <div class="progresso-texto">
-                                    <span>📸 Com Imagem</span>
-                                    <span>${dados.qualidade_dados.com_imagem}%</span>
-                                </div>
-                                <div class="barra-fundo">
-                                    <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_imagem}%; background: linear-gradient(90deg, #ff9800, #ff5722);"></div>
-                                </div>
-                            </div>
-
-                            <div class="progresso-container" style="margin-top: 20px;">
-                                <div class="progresso-texto">
-                                    <span>📝 Com Descrição</span>
-                                    <span>${dados.qualidade_dados.com_descricao}%</span>
-                                </div>
-                                <div class="barra-fundo">
-                                    <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_descricao}%; background: linear-gradient(90deg, #00bcd4, #2196f3);"></div>
-                                </div>
-                            </div>
-                        </div>
-
+                        <!-- CARD 1: TERMÔMETRO -->
                         <div class="card-metadados">
                             <h3>🌡️ Termômetro</h3>
                             <p class="desc-metadado">Qual é o "humor" das manchetes?</p>
@@ -225,6 +189,7 @@ async function mostrarAbaAnalise() {
                             </div>
                         </div>
 
+                        <!-- CARD 2: RELÓGIO DAS NOTÍCIAS -->
                         <div class="card-metadados">
                             <h3>⏰ Relógio</h3>
                             <p class="desc-metadado">Horários de publicação:</p>
@@ -243,8 +208,39 @@ async function mostrarAbaAnalise() {
                                 `).join('')}
                             </div>
                         </div>
-                    </div> 
-                    
+
+                        <!-- CARD 3: SENSACIONALISMO (CLICKBAIT) -->
+                        <div class="card-metadados">
+                            <h3>🎣 Sensacionalômetro</h3>
+                            <p class="desc-metadado">Uso de linguagem apelativa (Clickbait):</p>
+                            
+                            <div style="text-align: center; margin-top: 15px;">
+                                <h4 style="font-size: 2rem; color: #ff5722; margin-bottom: 5px;">${dados.sensacionalismo.percentual}%</h4>
+                                <p style="font-size: 0.9rem; color: var(--text-muted);">das manchetes usam "!" ou "?"</p>
+                                
+                                <div style="margin-top: 15px; padding: 10px; background: #ffebee; border-radius: 8px; color: #d32f2f; font-size: 0.85rem;">
+                                    <strong>🏆 Liderando:</strong> Categoria de ${dados.sensacionalismo.categoria_lider}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CARD 4: FRESCOR DA INFORMAÇÃO -->
+                        <div class="card-metadados">
+                            <h3>⚡ Índice de Frescor</h3>
+                            <p class="desc-metadado">Latência (Idade média das notícias):</p>
+                            
+                            <div style="text-align: center; margin-top: 15px;">
+                                <h4 style="font-size: 2rem; color: #00bcd4; margin-bottom: 5px;">${dados.frescor_horas}h</h4>
+                                <p style="font-size: 0.9rem; color: var(--text-muted);">de vida média no portal</p>
+                                
+                                <div style="margin-top: 15px; padding: 10px; background: #e0f7fa; border-radius: 8px; color: #00838f; font-size: 0.85rem;">
+                                    <strong>Desempenho do Robô:</strong> Rápido 🚀
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- FIM DA SEÇÃO DE METADADOS -->
+
                     <div class="secao-ranking" style="grid-column: 1 / -1; margin-top: 20px;">
                         <h3>🏆 Top 5 Mais Lidas</h3>
                         <table class="tabela-analise">
