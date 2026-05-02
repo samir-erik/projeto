@@ -127,6 +127,8 @@ async function mostrarAbaAnalise() {
     const div = document.getElementById("noticias");
     div.innerHTML = "<p style='text-align:center; padding:50px;'>Gerando inteligência de dados...</p>";
 
+    
+
     try {
         const res = await fetch(`${API_URL}/dashboard`);
         const dados = await res.json();

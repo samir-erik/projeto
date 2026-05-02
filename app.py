@@ -148,6 +148,27 @@ def dashboard():
     cursor.execute("SELECT titulo, COALESCE(acessos, 0) FROM noticias ORDER BY acessos DESC LIMIT 5")
     ranking = [{"titulo": d[0], "acessos": d[1]} for d in cursor.fetchall()]
 
+    # 🚀 12. Algoritmo de Relevância (A "Escolha da IA")
+    # Vamos dar uma nota para cada notícia: (Cliques * 0.7) + (Se tem Clickbait * 0.3)
+    cursor.execute("""
+        SELECT titulo, url, categoria, COALESCE(acessos, 0), 
+               (COALESCE(acessos, 0) * 1.5) + 
+               (CASE WHEN titulo ILIKE '%!%' OR titulo ILIKE '%?%' THEN 50 ELSE 0 END) as score
+        FROM noticias 
+        ORDER BY score DESC LIMIT 1
+    """)
+    destaque_raw = cursor.fetchone()
+    
+    noticia_destaque = {}
+    if destaque_raw:
+        noticia_destaque = {
+            "titulo": destaque_raw[0],
+            "url": destaque_raw[1],
+            "categoria": destaque_raw[2],
+            "cliques": destaque_raw[3],
+            "motivo": "Alto engajamento e apelo visual na manchete." if destaque_raw[4] > 100 else "Relevância orgânica por tempo de exposição."
+        }
+
     conn.close()
 
     # Resposta consolidada para o Front-end
