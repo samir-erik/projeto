@@ -11,7 +11,6 @@ CORS(app)
 DB_URI = "postgresql://postgres.ruwagoepsujdemktrqno:C66236DBCc.@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
 
 def conectar():
-    """Cria uma nova conexão com o banco de dados PostgreSQL."""
     return psycopg2.connect(DB_URI)
 
 # --- ROTAS DE NOTÍCIAS ---
@@ -48,25 +47,20 @@ def buscar(termo):
 def filtrar_por_data(data_selecionada):
     conn = conectar()
     cursor = conn.cursor()
-    
-    # O comando DATE() do PostgreSQL ignora as horas e pega só o dia (YYYY-MM-DD)
     cursor.execute("""
         SELECT titulo, descricao, url, imagem, categoria 
         FROM noticias 
         WHERE DATE(data_publicacao) = %s 
         ORDER BY data_publicacao DESC
     """, (data_selecionada,))
-    
     dados = cursor.fetchall()
     conn.close()
-    
     return jsonify([{"titulo": d[0], "descricao": d[1], "url": d[2], "imagem": d[3], "categoria": d[4]} for d in dados])
 
 @app.route("/datas_disponiveis")
 def datas_disponiveis():
     conn = conectar()
     cursor = conn.cursor()
-    # Puxa apenas as datas únicas (sem a hora) que existem no banco
     cursor.execute("SELECT DISTINCT DATE(data_publicacao) FROM noticias ORDER BY DATE(data_publicacao) DESC")
     datas = [d[0].strftime("%Y-%m-%d") for d in cursor.fetchall()]
     conn.close()
@@ -92,7 +86,6 @@ def dashboard():
     conn = conectar()
     cursor = conn.cursor()
     
-    # Filtro Dinâmico
     if categoria_filtro == 'Todas':
         filtro_sql = ""
         params = ()
@@ -100,13 +93,11 @@ def dashboard():
         filtro_sql = " WHERE TRIM(categoria) ILIKE %s "
         params = (categoria_filtro,)
 
-    # 1. Estatísticas Gerais
     cursor.execute(f"SELECT COUNT(*), SUM(COALESCE(acessos, 0)) FROM noticias {filtro_sql}", params)
     resultado_geral = cursor.fetchone()
     total_noticias = resultado_geral[0] or 0
     total_acessos = resultado_geral[1] or 0
 
-    # Se não houver notícias (banco vazio para a categoria), retorna dados zerados
     if total_noticias == 0:
         conn.close()
         return jsonify({
@@ -114,18 +105,17 @@ def dashboard():
             "qualidade": {"img": 0, "desc": 0}, "sensacionalismo": 0,
             "sentimento": {"humor": "Sem Dados", "cor": "#9e9e9e", "score_pos": 50},
             "relogio": {"manha": 0, "tarde": 0, "noite": 0, "madrugada": 0},
-            "fontes": []
+            "fontes": [], "historico_delay": {"labels": [], "dados": []}
         })
 
-    # 2. Cálculos de Médias Seguros
     cursor.execute(f"SELECT ROUND(AVG(LENGTH(titulo)), 0) FROM noticias {filtro_sql}", params)
     media_titulo = int(cursor.fetchone()[0] or 0)
 
     cursor.execute(f"SELECT ROUND(AVG(EXTRACT(EPOCH FROM (NOW() - data_publicacao)) / 3600), 1) FROM noticias {filtro_sql}", params)
     frescor_medio = cursor.fetchone()[0] or 0
 
-    # 3. Processamento de Texto e Datas
-    cursor.execute(f"SELECT titulo, data_publicacao, imagem, descricao FROM noticias {filtro_sql}", params)
+    # NOVO: Adicionado o cálculo de Delay direto na busca de cada notícia
+    cursor.execute(f"SELECT titulo, data_publicacao, imagem, descricao, EXTRACT(EPOCH FROM (NOW() - data_publicacao)) / 3600 FROM noticias {filtro_sql} ORDER BY data_publicacao DESC", params)
     rows = cursor.fetchall()
 
     total_sensacionalista = 0
@@ -133,12 +123,13 @@ def dashboard():
     palavras_pos = ["cresce", "alta", "cura", "vitória", "avanço", "sucesso", "ganha", "lucro", "paz"]
     palavras_neg = ["crise", "queda", "morte", "alerta", "risco", "perde", "guerra", "medo", "inflação"]
 
-    for titulo, data, img, desc in rows:
-        # Qualidade
+    labels_delay = []
+    dados_delay = []
+
+    for titulo, data, img, desc, delay in rows:
         if img: com_img += 1
         if desc: com_desc += 1
         
-        # Sensacionalismo e Sentimento (Apenas se houver título)
         if titulo:
             if "!" in titulo or "?" in titulo or titulo.isupper(): 
                 total_sensacionalista += 1
@@ -148,30 +139,32 @@ def dashboard():
                 if p in t_low: pontos_pos += 1
             for n in palavras_neg: 
                 if n in t_low: pontos_neg += 1
+            
+            # NOVO: Coleta os dados para o Gráfico de Delay (Limitado a 30 para visualização)
+            if delay is not None and len(dados_delay) < 30:
+                labels_delay.append(titulo[:15] + "...")
+                dados_delay.append(round(delay, 1))
                 
-        # Relógio (Garante que a extração da hora funcione)
         if data:
-            try:
-                hr = data.hour
+            try: hr = data.hour
             except AttributeError:
-                # Fallback caso venha como string
-                try:
-                    hr = int(str(data)[11:13])
-                except:
-                    hr = 12
+                try: hr = int(str(data)[11:13])
+                except: hr = 12
             
             if 6 <= hr < 12: manha += 1
             elif 12 <= hr < 18: tarde += 1
             elif 18 <= hr < 24: noite += 1
             else: madruga += 1
 
-    # Cálculos finais
+    # Inverter as listas para o gráfico mostrar da mais antiga (esquerda) para a mais nova (direita)
+    labels_delay.reverse()
+    dados_delay.reverse()
+
     total_sent = pontos_pos + pontos_neg
     score_pos = round((pontos_pos / total_sent * 100)) if total_sent > 0 else 50
     humor, cor = ("Positivo ☀️", "#4caf50") if score_pos >= 60 else (("Tenso ⛈️", "#f44336") if score_pos <= 40 else ("Misto ⛅", "#ff9800"))
 
-    # NOVO: Busca as 3 fontes que mais publicam
-    cursor.execute(f"SELECT fonte, COUNT(*) as qtd FROM noticias {filtro_sql} GROUP BY fonte ORDER BY qtd DESC LIMIT 3", params)
+    cursor.execute(f"SELECT fonte, COUNT(*) as qtd FROM noticias {filtro_sql} GROUP BY fonte ORDER BY qtd DESC LIMIT 5", params)
     top_fontes = [{"nome": row[0] or "Desconhecida", "quantidade": row[1]} for row in cursor.fetchall()]
 
     conn.close()
@@ -193,7 +186,8 @@ def dashboard():
             "noite": round((noite/total_noticias)*100, 1), 
             "madrugada": round((madruga/total_noticias)*100, 1)
         },
-        "fontes": top_fontes
+        "fontes": top_fontes,
+        "historico_delay": {"labels": labels_delay, "dados": dados_delay} # NOVO RETORNO
     })
 
 if __name__ == '__main__':

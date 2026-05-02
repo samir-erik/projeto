@@ -123,7 +123,9 @@ async function registrarAcesso(url) {
 }
 
 // --- DASHBOARD (ABA DE ANALYTICS) ---
-let graficoInstancia = null; // Para destruir o gráfico antigo ao mudar de categoria
+let graficoRelogioInstancia = null; 
+let graficoFontesInstancia = null; 
+let graficoDelayInstancia = null; // NOVO: Variável para o gráfico de Delay
 
 async function mostrarAbaAnalise(categoria = 'Todas') {
     const div = document.getElementById("noticias");
@@ -132,21 +134,6 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
     try {
         const res = await fetch(`${API_URL}/dashboard?categoria=${categoria}`);
         const dados = await res.json();
-
-        // Gerar o HTML do pódio de fontes
-        let htmlFontes = '<ul class="lista-fontes" style="list-style:none; padding:0;">';
-        if (dados.fontes && dados.fontes.length > 0) {
-            dados.fontes.forEach((fonte, index) => {
-                let medalha = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
-                htmlFontes += `<li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #ddd;">
-                    <span>${medalha} ${fonte.nome}</span> 
-                    <strong>${fonte.quantidade} not.</strong>
-                </li>`;
-            });
-        } else {
-            htmlFontes += '<li>Sem dados de fontes</li>';
-        }
-        htmlFontes += '</ul>';
 
         div.innerHTML = `
             <div class="dashboard-aba">
@@ -166,49 +153,64 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
                     </select>
                 </div>
 
-                <div class="secao-metadados">   
-                    <div class="card-analise">
-                        <h3>⚡ Agilidade (Delay Médio)</h3>
-                        <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Tempo decorrido desde a publicação original.</p>
-                        <div class="valor-frescor">${dados.frescor_medio}h</div>
+                <!-- LINHA 1: FONTES E PICO DE POSTAGEM -->
+                <div class="secao-metadados">
+                    <div class="card-analise" style="position: relative; height: 300px;">
+                        <h3 style="margin-bottom: 15px;">📰 Top 5 Veículos (Fontes)</h3>
+                        <canvas id="graficoFontes"></canvas>
                     </div>
 
-                    <div class="card-analise">
-                        <h3>📰 Top Fontes (Mídia)</h3>
-                        <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Portais que mais publicaram.</p>
-                        ${htmlFontes}
+                    <div class="card-analise" style="position: relative; height: 300px;">
+                        <h3 style="margin-bottom: 15px;">⏰ Pico de Postagem</h3>
+                        <canvas id="graficoRelogio"></canvas>
                     </div>
-                    
-                    <div class="card-analise">
-                        <h3>🌡️ Termômetro (${dados.sentimento.humor})</h3>
-                        <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Mede o nível de palavras positivas nos títulos.</p>
+                </div>
+
+                <!-- LINHA 2: NOVO GRÁFICO DE DELAY E SENTIMENTO -->
+                <div class="secao-metadados" style="margin-top: 20px;">
+                    <!-- Gráfico Ocupando 2/3 da tela -->
+                    <div class="card-analise" style="position: relative; grid-column: span 2; height: auto;">
+                        <h3 style="margin-bottom: 5px;">⚡ Histórico de Delay (Últimas Notícias)</h3>
+                        <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">Tempo decorrido entre a publicação no portal original e a nossa coleta.</p>
                         
+                        <div style="height: 200px;">
+                            <canvas id="graficoDelay"></canvas>
+                        </div>
+                        
+                        <!-- MÉDIA NO RODAPÉ DO GRÁFICO -->
+                        <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+                            <p style="font-size: 1.1em; color: var(--text-main);">
+                                Média Geral de Delay da Categoria: <strong style="font-size: 1.5em; color: var(--primary);">${dados.frescor_medio}h</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Termômetro ao lado -->
+                    <div class="card-analise" style="display: flex; flex-direction: column; justify-content: center;">
+                        <h3 style="text-align:center;">🌡️ Termômetro</h3>
+                        <p style="text-align:center; font-size: 1.2em; font-weight:bold; color: ${dados.sentimento.cor}; margin: 10px 0;">
+                            ${dados.sentimento.humor}
+                        </p>
                         <div class="barra-sentimento-container">
                             <div class="barra-sentimento" style="width: ${dados.sentimento.score_pos}%; background: ${dados.sentimento.cor}"></div>
                         </div>
-                        
-                        <p style="text-align: right; font-size: 0.9em; margin-top: 5px; font-weight: bold; color: ${dados.sentimento.cor};">
-                            Índice de Positividade: ${dados.sentimento.score_pos}%
+                        <p style="text-align: center; font-size: 0.9em; margin-top: 10px;">
+                            Índice de Positividade: <strong>${dados.sentimento.score_pos}%</strong>
                         </p>
-                    </div>
-
-                    <div class="card-analise" style="position: relative; height: 230px;">
-                        <h3 style="margin-bottom: 5px;">⏰ Pico de Postagem</h3>
-                        <canvas id="graficoRelogio"></canvas>
                     </div>
                 </div>
             </div>
         `;
 
-        // Renderizar o Gráfico com Chart.js
-        const ctx = document.getElementById('graficoRelogio');
-        if (ctx) {
-            // Destrói o gráfico anterior se existir, para não sobrepor ao mudar de categoria
-            if (graficoInstancia) {
-                graficoInstancia.destroy();
-            }
+        // Destrói gráficos antigos para evitar sobreposição
+        if (graficoRelogioInstancia) graficoRelogioInstancia.destroy();
+        if (graficoFontesInstancia) graficoFontesInstancia.destroy();
+        if (graficoDelayInstancia) graficoDelayInstancia.destroy();
 
-            graficoInstancia = new Chart(ctx, {
+        // 1. Gráfico de Rosca (Relógio)
+        const ctxRelogio = document.getElementById('graficoRelogio');
+        if (ctxRelogio) {
+            graficoRelogioInstancia = new Chart(ctxRelogio, {
                 type: 'doughnut',
                 data: {
                     labels: ['Manhã', 'Tarde', 'Noite', 'Madrugada'],
@@ -218,18 +220,63 @@ async function mostrarAbaAnalise(categoria = 'Todas') {
                         borderWidth: 0
                     }]
                 },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // 2. Gráfico de Barras (Fontes)
+        const ctxFontes = document.getElementById('graficoFontes');
+        if (ctxFontes && dados.fontes && dados.fontes.length > 0) {
+            graficoFontesInstancia = new Chart(ctxFontes, {
+                type: 'bar',
+                data: {
+                    labels: dados.fontes.map(f => f.nome),
+                    datasets: [{
+                        data: dados.fontes.map(f => f.quantidade),
+                        backgroundColor: 'rgba(26, 115, 232, 0.7)',
+                        borderRadius: 4
+                    }]
+                },
                 options: {
-                    responsive: true,
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // 3. NOVO: Gráfico de Linhas (Delay)
+        const ctxDelay = document.getElementById('graficoDelay');
+        if (ctxDelay && dados.historico_delay && dados.historico_delay.dados.length > 0) {
+            graficoDelayInstancia = new Chart(ctxDelay, {
+                type: 'line',
+                data: {
+                    labels: dados.historico_delay.labels,
+                    datasets: [{
+                        label: 'Delay (Horas)',
+                        data: dados.historico_delay.dados,
+                        borderColor: '#f44336', // Cor vermelha para indicar o alerta de tempo
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3, // Deixa a linha mais suave (curvada)
+                        fill: true,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true, 
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right' }
-                    }
+                    scales: { 
+                        y: { beginAtZero: true, title: { display: true, text: 'Horas' } },
+                        x: { ticks: { display: false } } // Esconde o nome cortado das notícias no eixo X para ficar limpo
+                    },
+                    plugins: { legend: { display: false } }
                 }
             });
         }
 
     } catch (e) {
-        div.innerHTML = "<p style='color:red; text-align:center;'>Erro ao conectar com o servidor. Verifica o terminal do Python.</p>";
+        div.innerHTML = "<p style='color:red; text-align:center;'>Erro ao conectar com o servidor. Verifica o terminal.</p>";
         console.error(e);
     }
 }
