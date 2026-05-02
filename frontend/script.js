@@ -1,134 +1,131 @@
+// Configuração da API - Centralizada para facilitar se o endereço mudar
 const API_URL = "https://projeto-y7ry.onrender.com";
 
-// 🚀 1. SISTEMA DE CACHE: Guarda os dados para evitar requisições repetidas
-const cacheNoticias = {};
-
-// 🚀 2. CONTROLE DE ROLAGEM INFINITA
-let noticiasExibidas = []; // Guarda a lista completa da categoria atual
-let itensPorPagina = 9;    // Quantas notícias aparecem por vez
+// --- ESTADO GLOBAL DA APLICAÇÃO ---
+const cacheNoticias = {}; // Sistema de Cache: Evita requisições repetidas ao servidor
+let noticiasExibidas = []; // Lista de notícias atualmente carregada (para filtro/busca)
+let itensPorPagina = 9;    // Quantidade de cards por lote (Paginação)
 let paginaAtual = 1;
 
+/**
+ * Função principal para buscar todas as notícias.
+ * Implementa cache simples para melhorar a performance.
+ */
 async function carregarNoticias() {
-    // Se já temos as notícias no cache, usa elas (resposta instantânea)
+    // Se os dados já estiverem no cache, não vai ao servidor (Economia de dados)
     if (cacheNoticias['todas']) {
         prepararExibicao(cacheNoticias['todas']);
         return;
     }
 
     const div = document.getElementById("noticias");
-    div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Carregando as últimas notícias...</p>";
+    div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Carregando portal...</p>";
 
     try {
         const res = await fetch(`${API_URL}/noticias`);
         const dados = await res.json();
-        cacheNoticias['todas'] = dados; // Salva no cache
+        
+        cacheNoticias['todas'] = dados; // Salva no cache para a próxima vez
         prepararExibicao(dados);
     } catch (e) {
-        div.innerHTML = "<p>Erro ao carregar notícias. Tente novamente.</p>";
+        div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Erro ao conectar com o servidor.</p>";
     }
 }
 
+/**
+ * Filtra as notícias por categoria.
+ */
 async function filtrar(categoria) {
-    // Se a categoria já está no cache, carrega em 0 segundos
     if (cacheNoticias[categoria]) {
         prepararExibicao(cacheNoticias[categoria]);
         return;
     }
 
     const div = document.getElementById("noticias");
-    div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Buscando notícias de ${categoria}...</p>`;
+    div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Buscando ${categoria}...</p>`;
 
     try {
         const res = await fetch(`${API_URL}/categoria/${categoria}`);
         const dados = await res.json();
-        cacheNoticias[categoria] = dados; // Salva no cache
+        cacheNoticias[categoria] = dados;
         prepararExibicao(dados);
     } catch (e) {
-        div.innerHTML = `<p>Erro ao carregar ${categoria}.</p>`;
+        div.innerHTML = "<p>Erro ao filtrar categoria.</p>";
     }
 }
 
-// 🚀 3. PREPARA A EXIBIÇÃO E RESETA A ROLAGEM
+/**
+ * Prepara o array de notícias para a exibição e reseta a paginação.
+ */
 function prepararExibicao(lista) {
     noticiasExibidas = lista;
-    paginaAtual = 1; // Volta para a página 1
-    document.getElementById("noticias").innerHTML = ""; // Limpa a tela antiga
-    mostrarMais(); // Renderiza o primeiro lote
+    paginaAtual = 1; 
+    document.getElementById("noticias").innerHTML = ""; // Limpa o grid
+    mostrarMais(); // Inicia a renderização do primeiro lote
 }
 
-// 🚀 4. RENDERIZA AS NOTÍCIAS AOS POUCOS
+/**
+ * Renderiza as notícias em blocos (Paginação/Infinite Scroll).
+ */
 function mostrarMais() {
     const div = document.getElementById("noticias");
-
-    if (noticiasExibidas.length === 0) {
-        div.innerHTML = "<p style='text-align:center; grid-column: 1 / -1;'>Nenhuma notícia encontrada.</p>";
-        return;
-    }
-
-    // Calcula o lote atual que vamos fatiar do array
     const inicio = (paginaAtual - 1) * itensPorPagina;
     const fim = inicio + itensPorPagina;
-    const pedaco = noticiasExibidas.slice(inicio, fim);
+    const lote = noticiasExibidas.slice(inicio, fim);
 
-    // Se já passou do fim do array, não faz nada
-    if (pedaco.length === 0) return;
+    if (lote.length === 0) return;
 
-    pedaco.forEach(noticia => {
+    lote.forEach(noticia => {
         div.innerHTML += `
             <div class="card fade-in">
-                <img src="${noticia.imagem || 'https://via.placeholder.com/300x180'}" />
+                <img src="${noticia.imagem || 'https://via.placeholder.com/300x180'}" alt="Notícia" />
                 <div class="card-content">
                     <h3>${noticia.titulo}</h3>
-                    <p><strong>${noticia.categoria}</strong></p>
-                    <a href="${noticia.url}" target="_blank" onclick="registrarAcesso('${noticia.url}')">Ler mais →</a>
+                    <p class="tag-categoria"><strong>${noticia.categoria}</strong></p>
+                    <a href="${noticia.url}" target="_blank" onclick="registrarAcesso('${noticia.url}')">Ler na íntegra →</a>
                 </div>
             </div>
         `;
     });
-
-    paginaAtual++; // Prepara para a próxima rolagem
+    paginaAtual++;
 }
 
-// 🚀 5. DETECTA A ROLAGEM DA PÁGINA (SCROLL)
-window.addEventListener('scroll', () => {
-    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-    // Se o usuário rolou até perto do fim da página (margem de 50px)
-    if (scrollTop + clientHeight >= scrollHeight - 50) {
-        mostrarMais(); // Dispara o carregamento de mais 6 notícias
-    }
-});
+// --- BUSCA E EVENTOS ---
 
-// BUSCA COM DELAY (Debounce) PARA NÃO TRAVAR O SITE
+// Debounce: Aguarda o usuário parar de digitar para disparar a busca (Otimização de rede)
 let timeoutBusca = null;
-async function buscar() {
-    clearTimeout(timeoutBusca); // Limpa o timer anterior
-    
-    // Aguarda o usuário parar de digitar por 500ms antes de ir no banco
+function buscar() {
+    clearTimeout(timeoutBusca);
     timeoutBusca = setTimeout(async () => {
         const termo = document.getElementById("campoBusca").value;
-        const div = document.getElementById("noticias");
-
         if (termo.length >= 3) {
-            div.innerHTML = `<p style='text-align:center; grid-column: 1 / -1;'>Pesquisando por "${termo}"...</p>`;
             const res = await fetch(`${API_URL}/buscar/${termo}`);
-            const dados = await res.json();
-            prepararExibicao(dados);
+            prepararExibicao(await res.json());
         } else if (termo.length === 0) {
             carregarNoticias();
         }
     }, 500); 
 }
 
+// Listener de Scroll para Rolagem Infinita
+window.addEventListener('scroll', () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+        mostrarMais();
+    }
+});
+
+/**
+ * Incrementa o contador de acessos no banco de dados.
+ */
 async function registrarAcesso(url) {
-    await fetch(`${API_URL}/contar_acesso/${encodeURIComponent(url)}`, { method: 'POST' });
+    fetch(`${API_URL}/contar_acesso/${encodeURIComponent(url)}`, { method: 'POST' });
 }
 
-// Mantém sua função de Dashboard original aqui (apenas omiti para economizar espaço, mantenha a que você já tem no arquivo!)
-// async function mostrarAbaAnalise() { ... }
+// --- ABA DE ANÁLISE (DASHBOARD) ---
 
 async function mostrarAbaAnalise() {
     const div = document.getElementById("noticias");
-    div.innerHTML = "<p style='text-align:center; padding:50px;'>Carregando análises detalhadas...</p>";
+    div.innerHTML = "<p style='text-align:center; padding:50px;'>Gerando inteligência de dados...</p>";
 
     try {
         const res = await fetch(`${API_URL}/dashboard`);
@@ -137,8 +134,8 @@ async function mostrarAbaAnalise() {
         div.innerHTML = `
             <div class="dashboard-aba" style="grid-column: 1 / -1; width: 100%;">
                 <div class="dashboard-header">
-                    <h2>📊 Analytics do Portal</h2>
-                    <p>Visão geral de desempenho e engajamento</p>
+                    <h2>📊 Painel de Analytics</h2>
+                    <p>Métricas de engajamento e análise de conteúdo</p>
                 </div>
 
                 <div class="metrics-row">
@@ -147,112 +144,73 @@ async function mostrarAbaAnalise() {
                         <strong>${dados.estatisticas_gerais.total}</strong>
                     </div>
                     <div class="card-metrica">
-                        <span>Engajamento Total</span>
-                        <strong>${dados.estatisticas_gerais.cliques_totais} <small>cliques</small></strong>
+                        <span>Cliques Computados</span>
+                        <strong>${dados.estatisticas_gerais.cliques_totais}</strong>
                     </div>
                 </div>
 
                 <div class="analise-detalhada">
+                    <!-- Fontes em destaque -->
                     <div class="secao-fontes" style="grid-column: 1 / -1; margin-bottom: 20px;">
-                        <h3>📡 Principais Portais (Fontes)</h3>
+                        <h3>📡 Portais Agregados</h3>
                         <ul class="lista-fontes">
                             ${dados.por_fonte.map(f => `
-                                <li>
-                                    <span class="nome-fonte">${f.fonte}</span>
-                                    <span class="qtd-fonte"><strong>${f.quantidade}</strong> notícias</span>
-                                </li>
+                                <li><span>${f.fonte}</span><span class="qtd-fonte">${f.quantidade} notícias</span></li>
                             `).join('')}
                         </ul>
                     </div>
 
-                    <!-- 🚀 SEÇÃO DE METADADOS: 4 CARTÕES ALINHADOS -->
-                    <div class="secao-metadados" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <!-- Grid de 4 Cartões de Inteligência -->
+                    <div class="secao-metadados" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
                         
-                        <!-- CARD 1: TERMÔMETRO -->
                         <div class="card-metadados">
-                            <h3>🌡️ Termômetro</h3>
-                            <p class="desc-metadado">Qual é o "humor" das manchetes?</p>
-                            
-                            <div style="text-align: center; margin-top: 20px;">
-                                <h4 style="font-size: 1.6rem; color: ${dados.sentimento.cor}; margin-bottom: 15px;">
-                                    ${dados.sentimento.humor}
-                                </h4>
-                                
-                                <div style="background: #f44336; height: 25px; border-radius: 12px; overflow: hidden; display: flex; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                                    <div style="width: ${dados.sentimento.score_pos}%; background: #4caf50; transition: width 1s ease-in-out;" title="Notícias Positivas"></div>
-                                </div>
-                                
-                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 8px; color: var(--text-muted); font-weight: bold;">
-                                    <span style="color: #4caf50;">↑ Positivas (${dados.sentimento.positivos})</span>
-                                    <span style="color: #f44336;">↓ Negativas (${dados.sentimento.negativos})</span>
-                                </div>
+                            <h3>🌡️ Humor do Dia</h3>
+                            <p class="desc-metadado">Sentimento das manchetes:</p>
+                            <div style="text-align: center;">
+                                <h4 style="color: ${dados.sentimento.cor}; font-size: 1.4rem;">${dados.sentimento.humor}</h4>
+                                <small>Score Positivo: ${dados.sentimento.score_pos}%</small>
                             </div>
                         </div>
 
-                        <!-- CARD 2: RELÓGIO DAS NOTÍCIAS -->
                         <div class="card-metadados">
-                            <h3>⏰ Relógio</h3>
-                            <p class="desc-metadado">Horários de publicação:</p>
-                            
-                            <div style="margin-top: 15px;">
-                                ${dados.relogio.map(r => `
-                                    <div class="progresso-container" style="margin-bottom: 12px;">
-                                        <div class="progresso-texto" style="font-size: 0.85rem;">
-                                            <span>${r.periodo}</span>
-                                            <span><strong>${r.percentual}%</strong> (${r.quantidade})</span>
-                                        </div>
-                                        <div class="barra-fundo" style="height: 8px; background: #e0e0e0;">
-                                            <div class="barra-preenchida" style="width: ${r.percentual}%; background: var(--primary);"></div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
+                            <h3>⏰ Relógio Temporal</h3>
+                            <p class="desc-metadado">Distribuição de publicações:</p>
+                            ${dados.relogio.map(r => `
+                                <div style="font-size: 0.8rem; margin-bottom: 5px;">
+                                    ${r.periodo}: <strong>${r.percentual}%</strong>
+                                </div>
+                            `).join('')}
                         </div>
 
-                        <!-- CARD 3: SENSACIONALISMO (CLICKBAIT) -->
                         <div class="card-metadados">
                             <h3>🎣 Sensacionalômetro</h3>
-                            <p class="desc-metadado">Uso de linguagem apelativa (Clickbait):</p>
-                            
-                            <div style="text-align: center; margin-top: 15px;">
-                                <h4 style="font-size: 2rem; color: #ff5722; margin-bottom: 5px;">${dados.sensacionalismo.percentual}%</h4>
-                                <p style="font-size: 0.9rem; color: var(--text-muted);">das manchetes usam "!" ou "?"</p>
-                                
-                                <div style="margin-top: 15px; padding: 10px; background: #ffebee; border-radius: 8px; color: #d32f2f; font-size: 0.85rem;">
-                                    <strong>🏆 Liderando:</strong> Categoria de ${dados.sensacionalismo.categoria_lider}
-                                </div>
+                            <p class="desc-metadado">Potencial de Clickbait:</p>
+                            <div style="text-align: center;">
+                                <h4 style="color: #ff5722; font-size: 1.8rem;">${dados.sensacionalismo.percentual}%</h4>
+                                <small>Líder: ${dados.sensacionalismo.categoria_lider}</small>
                             </div>
                         </div>
 
-                        <!-- CARD 4: FRESCOR DA INFORMAÇÃO -->
                         <div class="card-metadados">
                             <h3>⚡ Índice de Frescor</h3>
-                            <p class="desc-metadado">Latência (Idade média das notícias):</p>
-                            
-                            <div style="text-align: center; margin-top: 15px;">
-                                <h4 style="font-size: 2rem; color: #00bcd4; margin-bottom: 5px;">${dados.frescor_horas}h</h4>
-                                <p style="font-size: 0.9rem; color: var(--text-muted);">de vida média no portal</p>
-                                
-                                <div style="margin-top: 15px; padding: 10px; background: #e0f7fa; border-radius: 8px; color: #00838f; font-size: 0.85rem;">
-                                    <strong>Desempenho do Robô:</strong> Rápido 🚀
-                                </div>
+                            <p class="desc-metadado">Latência média do portal:</p>
+                            <div style="text-align: center;">
+                                <h4 style="color: #00bcd4; font-size: 1.8rem;">${dados.frescor_horas}h</h4>
+                                <small>Atraso médio vs Origem</small>
                             </div>
                         </div>
+                    </div>
 
-                    </div> <!-- FIM DA SEÇÃO DE METADADOS -->
-
-                    <div class="secao-ranking" style="grid-column: 1 / -1; margin-top: 20px;">
-                        <h3>🏆 Top 5 Mais Lidas</h3>
+                    <!-- Ranking Final -->
+                    <div class="secao-ranking" style="grid-column: 1 / -1;">
+                        <h3>🏆 Ranking de Relevância (Top 5 Lidas)</h3>
                         <table class="tabela-analise">
                             <thead>
-                                <tr><th>Notícia</th><th>Acessos</th></tr>
+                                <tr><th>Manchete</th><th>Cliques</th></tr>
                             </thead>
                             <tbody>
                                 ${dados.ranking_top_5.map(n => `
-                                    <tr>
-                                        <td>${n.titulo}</td>
-                                        <td><strong>${n.acessos}</strong></td>
-                                    </tr>
+                                    <tr><td>${n.titulo}</td><td><strong>${n.acessos}</strong></td></tr>
                                 `).join('')}
                             </tbody>
                         </table>
@@ -261,9 +219,9 @@ async function mostrarAbaAnalise() {
             </div>
         `;
     } catch (erro) {
-        div.innerHTML = "<p>Erro ao carregar o dashboard. Verifique a conexão com a API.</p>";
+        div.innerHTML = "<p style='text-align:center;'>Erro ao processar dashboard.</p>";
     }
 }
 
-
+// Inicialização
 carregarNoticias();
