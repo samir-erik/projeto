@@ -145,6 +145,31 @@ def dashboard():
         "humor": humor, "cor": cor, "score_pos": score_pos, 
         "positivos": pontos_positivos, "negativos": pontos_negativos
     }
+
+    # 🚀 9. Relógio das Notícias (Análise Temporal)
+    cursor.execute("""
+        SELECT EXTRACT(HOUR FROM data_publicacao), COUNT(*) 
+        FROM noticias 
+        GROUP BY EXTRACT(HOUR FROM data_publicacao)
+    """)
+    horas_dados = cursor.fetchall()
+
+    periodos = {"Madrugada (00h-06h)": 0, "Manhã (06h-12h)": 0, "Tarde (12h-18h)": 0, "Noite (18h-00h)": 0}
+    total_com_hora = 0
+    
+    for hora, qtd in horas_dados:
+        if hora is None: continue
+        h = int(hora)
+        if 0 <= h < 6: periodos["Madrugada (00h-06h)"] += qtd
+        elif 6 <= h < 12: periodos["Manhã (06h-12h)"] += qtd
+        elif 12 <= h < 18: periodos["Tarde (12h-18h)"] += qtd
+        else: periodos["Noite (18h-00h)"] += qtd
+        total_com_hora += qtd
+
+    relogio = [
+        {"periodo": p, "quantidade": q, "percentual": round((q / total_com_hora) * 100) if total_com_hora > 0 else 0} 
+        for p, q in periodos.items()
+    ]
     
     conn.close()
     
@@ -157,8 +182,12 @@ def dashboard():
         "por_fonte": por_fonte,
         "tamanho_titulos": tamanho_titulos,
         "qualidade_dados": qualidade_dados,
-        "sentimento": sentimento  # <-- Faltou adicionar esta linha!
+        "sentimento": sentimento,
+        "relogio": relogio  # <-- Adicione esta linha!
     })
+
+
+
 @app.route("/buscar/<termo>")
 def buscar(termo):
     conn = conectar()

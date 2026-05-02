@@ -153,7 +153,7 @@ async function mostrarAbaAnalise() {
                 </div>
 
                 <div class="analise-detalhada">
-                <div class="secao-fontes">
+                    <div class="secao-fontes" style="grid-column: 1 / -1; margin-bottom: 20px;">
                         <h3>📡 Principais Portais (Fontes)</h3>
                         <ul class="lista-fontes">
                             ${dados.por_fonte.map(f => `
@@ -164,68 +164,86 @@ async function mostrarAbaAnalise() {
                             `).join('')}
                         </ul>
                     </div>
-                    <div class="secao-metadados" style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px;">
-                    
-                    <div class="card-metadados">
-                        <h3>✍️ Perfil de Redação</h3>
-                        <p class="desc-metadado">Média de caracteres nos títulos por categoria:</p>
-                        <ul class="lista-fontes">
-                            ${dados.tamanho_titulos.map(t => `
-                                <li>
-                                    <span class="nome-fonte">${t.categoria}</span>
-                                    <span class="qtd-fonte" style="background: #e0f2f1; color: #00897b;"><strong>${t.media_caracteres}</strong> letras</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                    
-                    <div class="card-metadados">
-                        <h3>🛠️ Qualidade da API (Completude)</h3>
-                        <p class="desc-metadado">Taxa de sucesso na captação dos dados originais:</p>
+
+                    <div class="secao-metadados" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
                         
-                        <div class="progresso-container" style="margin-top: 25px;">
-                            <div class="progresso-texto">
-                                <span>📸 Notícias com Imagem Válida</span>
-                                <span>${dados.qualidade_dados.com_imagem}%</span>
-                            </div>
-                            <div class="barra-fundo">
-                                <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_imagem}%; background: linear-gradient(90deg, #ff9800, #ff5722);"></div>
-                            </div>
-                        </div>
                         <div class="card-metadados">
-                        <h3>🌡️ Termômetro das Notícias</h3>
-                        <p class="desc-metadado">Qual é o "humor" das manchetes hoje?</p>
+                            <h3>✍️ Perfil de Redação</h3>
+                            <p class="desc-metadado">Média de caracteres nos títulos:</p>
+                            <ul class="lista-fontes">
+                                ${dados.tamanho_titulos.map(t => `
+                                    <li>
+                                        <span class="nome-fonte">${t.categoria}</span>
+                                        <span class="qtd-fonte" style="background: #e0f2f1; color: #00897b;"><strong>${t.media_caracteres}</strong> letras</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
                         
-                        <div style="text-align: center; margin-top: 20px;">
-                            <h4 style="font-size: 1.6rem; color: ${dados.sentimento.cor}; margin-bottom: 15px;">
-                                ${dados.sentimento.humor}
-                            </h4>
+                        <div class="card-metadados">
+                            <h3>🛠️ Qualidade da API</h3>
+                            <p class="desc-metadado">Taxa de sucesso na captação:</p>
                             
-                            <div style="background: #f44336; height: 25px; border-radius: 12px; overflow: hidden; display: flex; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                                <div style="width: ${dados.sentimento.score_pos}%; background: #4caf50; transition: width 1s ease-in-out;" title="Notícias Positivas"></div>
+                            <div class="progresso-container" style="margin-top: 20px;">
+                                <div class="progresso-texto">
+                                    <span>📸 Com Imagem</span>
+                                    <span>${dados.qualidade_dados.com_imagem}%</span>
+                                </div>
+                                <div class="barra-fundo">
+                                    <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_imagem}%; background: linear-gradient(90deg, #ff9800, #ff5722);"></div>
+                                </div>
                             </div>
-                            
-                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 8px; color: var(--text-muted); font-weight: bold;">
-                                <span style="color: #4caf50;">↑ Positivas (${dados.sentimento.positivos})</span>
-                                <span style="color: #f44336;">↓ Negativas (${dados.sentimento.negativos})</span>
+
+                            <div class="progresso-container" style="margin-top: 20px;">
+                                <div class="progresso-texto">
+                                    <span>📝 Com Descrição</span>
+                                    <span>${dados.qualidade_dados.com_descricao}%</span>
+                                </div>
+                                <div class="barra-fundo">
+                                    <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_descricao}%; background: linear-gradient(90deg, #00bcd4, #2196f3);"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                        <div class="progresso-container" style="margin-top: 25px;">
-                            <div class="progresso-texto">
-                                <span>📝 Notícias com Descrição</span>
-                                <span>${dados.qualidade_dados.com_descricao}%</span>
-                            </div>
-                            <div class="barra-fundo">
-                                <div class="barra-preenchida" style="width: ${dados.qualidade_dados.com_descricao}%; background: linear-gradient(90deg, #00bcd4, #2196f3);"></div>
+                        <div class="card-metadados">
+                            <h3>🌡️ Termômetro</h3>
+                            <p class="desc-metadado">Qual é o "humor" das manchetes?</p>
+                            
+                            <div style="text-align: center; margin-top: 20px;">
+                                <h4 style="font-size: 1.6rem; color: ${dados.sentimento.cor}; margin-bottom: 15px;">
+                                    ${dados.sentimento.humor}
+                                </h4>
+                                
+                                <div style="background: #f44336; height: 25px; border-radius: 12px; overflow: hidden; display: flex; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                                    <div style="width: ${dados.sentimento.score_pos}%; background: #4caf50; transition: width 1s ease-in-out;" title="Notícias Positivas"></div>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 8px; color: var(--text-muted); font-weight: bold;">
+                                    <span style="color: #4caf50;">↑ Positivas (${dados.sentimento.positivos})</span>
+                                    <span style="color: #f44336;">↓ Negativas (${dados.sentimento.negativos})</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                </div>
-                    <div class="secao-stats">
-                    
+                        <div class="card-metadados">
+                            <h3>⏰ Relógio</h3>
+                            <p class="desc-metadado">Horários de publicação:</p>
+                            
+                            <div style="margin-top: 15px;">
+                                ${dados.relogio.map(r => `
+                                    <div class="progresso-container" style="margin-bottom: 12px;">
+                                        <div class="progresso-texto" style="font-size: 0.85rem;">
+                                            <span>${r.periodo}</span>
+                                            <span><strong>${r.percentual}%</strong> (${r.quantidade})</span>
+                                        </div>
+                                        <div class="barra-fundo" style="height: 8px; background: #e0e0e0;">
+                                            <div class="barra-preenchida" style="width: ${r.percentual}%; background: var(--primary);"></div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div> <div class="secao-stats">
                         <h3>Distribuição por Categoria</h3>
                         ${dados.por_categoria.map(cat => `
                             <div class="progresso-container">
@@ -239,7 +257,8 @@ async function mostrarAbaAnalise() {
                             </div>
                         `).join('')}
                     </div>
-                    <div class="secao-nuvem" style="grid-column: 1 / -1; margin-top: 20px;">
+                    
+                    <div class="secao-nuvem">
                         <h3>☁️ Termos em Alta (Nuvem de Palavras)</h3>
                         <div class="nuvem-container">
                             ${dados.nuvem_palavras.map(p => `
@@ -249,7 +268,8 @@ async function mostrarAbaAnalise() {
                             `).join(' ')}
                         </div>
                     </div>
-                    <div class="secao-ranking">
+                    
+                    <div class="secao-ranking" style="grid-column: 1 / -1; margin-top: 20px;">
                         <h3>🏆 Top 5 Mais Lidas</h3>
                         <table class="tabela-analise">
                             <thead>
