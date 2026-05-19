@@ -2,17 +2,18 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal de Notícias</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header><h1>📰 Portal de Notícias</h1></header>
+    <header>
+        <h1>📰 Portal de Notícias</h1>
+    </header>
     
     <div class="busca">
         <input type="text" id="campoBusca" placeholder="🔎 Buscar notícias..." oninput="buscar()">
-        
-        <!-- NOVO: Campo de Data -->
-        <input type="date" id="campoData" onchange="buscarPorData()" style="margin-top: 10px; padding: 10px 20px; border-radius: 50px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); outline: none;">
+        <input type="date" id="campoData" onchange="buscarPorData()" class="input-data-estilizado">
     </div>
 
     <div class="categorias">
@@ -20,15 +21,12 @@
         <button onclick="filtrar('Tecnologia')">Tecnologia</button>
         <button onclick="filtrar('Esportes')">Esportes</button>
         <button onclick="filtrar('Economia')">Economia</button>
-        <button onclick="mostrarAbaAnalise()" style="background: #28a745; color: white;">📊 Dashboard</button>
+        <button onclick="mostrarAbaAnalise()" class="btn-dashboard">📊 Dashboard</button>
     </div>
 
     <div class="container" id="noticias"></div>
 
-    <!-- Importação do Chart.js para os gráficos do Dashboard -->
-    <!-- Importação do Chart.js (Versão UMD Universal - Mais Estável) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
-    
     <script src="script.js"></script>
 </body>
 </html>

@@ -1,11 +1,10 @@
 import requests
 import psycopg2
 
-# 🔑 SUA API (pode usar GNews ou outra)
 API_KEY = "4790c1898eba8d3924a5d675cbd54e06"
+DB_URI = "postgresql://postgres.ruwagoepsujdemktrqno:C66236DBCc.@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
 
-# 🔥 COLOCA AQUI (logo no topo)
-categorias_api = {
+CATEGORIAS = {
     "Tecnologia": "technology",
     "Esportes": "sports",
     "Economia": "business",
@@ -13,48 +12,51 @@ categorias_api = {
     "Saúde": "health",
     "Ciência": "science",
     "Entretenimento": "entertainment",
-    "Mundo": "world",       # NOVA
-    "Brasil": "nation"      # NOVA
-}  
+    "Mundo": "world",       
+    "Brasil": "nation"      
+}
 
-# Conexão com o banco de dados
-conn = psycopg2.connect("postgresql://postgres.ruwagoepsujdemktrqno:C66236DBCc.@aws-1-us-east-1.pooler.supabase.com:5432/postgres")
-cursor = conn.cursor()
+def executar_rotina_coleta():
+    print("🚀 Iniciando rotina integrada de coleta de notícias...")
+    
+    try:
+        conn = psycopg2.connect(DB_URI)
+        cursor = conn.cursor()
+    except Exception as e:
+        print(f"❌ Falha de conexão ao Banco de Dados: {e}")
+        return
 
-# 📡 BUSCAR NOTÍCIAS
-for nome_categoria, api_categoria in categorias_api.items():
+    for nome_categoria, api_categoria in CATEGORIAS.items():
+        print(f"🔄 Solicitando dados da categoria: {nome_categoria}...")
+        url = f"https://gnews.io/api/v4/top-headlines?category={api_categoria}&lang=pt&max=10&token={API_KEY}"
+        
+        try:
+            res = requests.get(url)
+            data = res.json()
+            
+            if "articles" not in data:
+                print(f"⚠️ Resposta inválida da API para {nome_categoria}: {data}")
+                continue
 
-    print(f"🔄 Buscando {nome_categoria}...")
-
-    url = f"https://gnews.io/api/v4/top-headlines?category={api_categoria}&lang=pt&max=10&token={API_KEY}"
-
-    res = requests.get(url)
-    data = res.json()
-
-    # NOVO: Checa se a API realmente mandou as notícias antes de tentar ler
-    if "articles" in data:
-        for noticia in data["articles"]:
-            try:
+            for artigo in data["articles"]:
                 cursor.execute("""
-                    INSERT INTO noticias (titulo, descricao, url, imagem, fonte, data_publicacao, categoria)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO noticias (titulo, descricao, url, imagem, fonte, data_publicacao, categoria, acessos)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 0)
                     ON CONFLICT (url) DO NOTHING
                 """, (
-                    noticia["title"],
-                    noticia["description"],
-                    noticia["url"],
-                    noticia["image"],
-                    noticia["source"]["name"],
-                    noticia["publishedAt"],
+                    artigo["title"], artigo["description"], artigo["url"],
+                    artigo["image"], artigo["source"]["name"], artigo["publishedAt"],
                     nome_categoria
                 ))
-            except Exception as e:
-                print(f"Erro no banco: {e}")
-    else:
-        # Se não vier 'articles', imprime a mensagem de erro para sabermos o motivo (ex: limite da API)
-        print(f"⚠️ A API não mandou notícias para {nome_categoria}. Resposta: {data}")
+            conn.commit()
+            print(f"✅ Categoria {nome_categoria} sincronizada com sucesso.")
+            
+        except Exception as err:
+            print(f"❌ Erro durante o processamento da categoria {nome_categoria}: {err}")
+            
+    cursor.close()
+    conn.close()
+    print("🏁 Rotina de sincronização de notícias finalizada!")
 
-conn.commit()
-conn.close()
-
-print("✅ Rotina de notícias finalizada!")
+if __name__ == "__main__":
+    executar_rotina_coleta()
